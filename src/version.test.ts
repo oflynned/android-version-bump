@@ -11,9 +11,9 @@ const currentVersion: Version = { major: 1, minor: 2, patch: 3 };
 
 describe('version', () => {
   describe('isMajorBump', () => {
-    it('should return true when message starts with breaking change', () => {
+    it('should return true when the commit message contains an uppercase breaking change', () => {
       expect(
-        isMajorBump('chore: breaking change removed support for node 10'),
+        isMajorBump('chore: BREAKING CHANGE removed support for node 10'),
       ).toBeTruthy();
     });
 
@@ -37,7 +37,7 @@ describe('version', () => {
 
     it('should return true when message contains brackets', () => {
       expect(
-        isMajorBump('breaking change(node): removed support for node 10'),
+        isMajorBump('feat(node): BREAKING CHANGE removed support for node 10'),
       ).toBeTruthy();
     });
 
