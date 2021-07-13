@@ -4,6 +4,11 @@ export type Version = {
   patch: number;
 };
 
+export type Release = {
+  version: Version;
+  isReleasable: boolean;
+};
+
 export const isMajorBump = (message: string): boolean => {
   if (message.toLowerCase().includes('breaking change')) {
     return true;
@@ -43,20 +48,26 @@ export const isSemanticCommit = (message: string): boolean => {
 export const getReleaseVersion = (
   commits: string[],
   currentVersion: Version,
-): Version => {
+): Release => {
   const semanticCommits = commits.filter(isSemanticCommit);
 
   if (semanticCommits.length === 0) {
-    return currentVersion;
+    return {
+      isReleasable: false,
+      version: currentVersion,
+    };
   }
 
   const isMajor = semanticCommits.some(isMajorBump);
 
   if (isMajor) {
     return {
-      major: currentVersion.major + 1,
-      minor: 0,
-      patch: 0,
+      isReleasable: true,
+      version: {
+        major: currentVersion.major + 1,
+        minor: 0,
+        patch: 0,
+      },
     };
   }
 
@@ -64,9 +75,12 @@ export const getReleaseVersion = (
 
   if (isMinor) {
     return {
-      major: currentVersion.major,
-      minor: currentVersion.minor + 1,
-      patch: 0,
+      isReleasable: true,
+      version: {
+        major: currentVersion.major,
+        minor: currentVersion.minor + 1,
+        patch: 0,
+      },
     };
   }
 
@@ -74,11 +88,17 @@ export const getReleaseVersion = (
 
   if (isPatch) {
     return {
-      major: currentVersion.major,
-      minor: currentVersion.minor,
-      patch: currentVersion.patch + 1,
+      isReleasable: true,
+      version: {
+        major: currentVersion.major,
+        minor: currentVersion.minor,
+        patch: currentVersion.patch + 1,
+      },
     };
   }
 
-  return currentVersion;
+  return {
+    isReleasable: false,
+    version: currentVersion,
+  };
 };
