@@ -10,7 +10,7 @@ export type Release = {
 };
 
 export const isMajorBump = (message: string): boolean => {
-  if (message.toLowerCase().includes('breaking change')) {
+  if (message.includes('BREAKING CHANGE')) {
     return true;
   }
 
