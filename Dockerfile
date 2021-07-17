@@ -11,8 +11,8 @@ RUN apt-get update
 RUN apt-get install -y git
 
 RUN npm ci --only=production
-RUN npm build
-RUN npm package
+RUN npm run build
+RUN npm run package
 
 COPY . .
 
