@@ -9,7 +9,10 @@ COPY package*.json ./
 
 RUN apt-get update
 RUN apt-get install -y git
+
 RUN npm ci --only=production
+RUN npm build
+RUN npm package
 
 COPY . .
 
