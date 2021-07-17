@@ -4,6 +4,7 @@ import {
   isMinorBump,
   isPatchBump,
   isSemanticCommit,
+  Release,
   Version,
 } from './version';
 
@@ -27,6 +28,10 @@ describe('version', () => {
 
     it('should return true when message contain an exclamation mark', () => {
       expect(isMajorBump('chore!: removed support for node 10')).toBeTruthy();
+    });
+
+    it('should return true when message starts with major', () => {
+      expect(isMajorBump('major: removed support for node 10')).toBeTruthy();
     });
 
     it('should return true when message is uppercase', () => {
@@ -53,6 +58,10 @@ describe('version', () => {
   describe('isMinorBump', () => {
     it('should return true for feat', () => {
       expect(isMinorBump('feat: add user login')).toBeTruthy();
+    });
+
+    it('should return true for minor', () => {
+      expect(isMinorBump('minor: add user login')).toBeTruthy();
     });
 
     it('should return true for feat when capitalised', () => {
@@ -92,6 +101,10 @@ describe('version', () => {
       expect(isPatchBump('CHORE: did something')).toBeTruthy();
     });
 
+    it('should return true when intent is patch', () => {
+      expect(isPatchBump('patch: did something')).toBeTruthy();
+    });
+
     it('should return false otherwise', () => {
       expect(isPatchBump('feat: add user login')).toBeFalsy();
     });
@@ -122,51 +135,83 @@ describe('version', () => {
   describe('getReleaseVersion', () => {
     it('should return existing version on no semantic commits', () => {
       const commits: string[] = ['did something', 'did something else'];
+      const expected: Release = {
+        version: {
+          current: currentVersion,
+          next: currentVersion,
+        },
+        status: 'NO_BUMP',
+      };
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual(
-        currentVersion,
-      );
+      expect(getReleaseVersion(commits, currentVersion)).toEqual(expected);
     });
 
     it('should bump major and release minor and patch', () => {
       const commits: string[] = [
-        'feat: breaking change',
+        'feat: BREAKING CHANGE did something',
         'feat!: did something else',
       ];
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual({
-        major: 2,
-        minor: 0,
-        patch: 0,
-      });
+      const expected: Release = {
+        version: {
+          current: currentVersion,
+          next: {
+            major: 2,
+            minor: 0,
+            patch: 0,
+          },
+        },
+        status: 'MAJOR_BUMP',
+      };
+
+      expect(getReleaseVersion(commits, currentVersion)).toEqual(expected);
     });
 
     it('should bump minor, keep major the same and reset patch', () => {
       const commits: string[] = ['feat: did something'];
+      const expected: Release = {
+        version: {
+          current: currentVersion,
+          next: {
+            major: 1,
+            minor: 3,
+            patch: 0,
+          },
+        },
+        status: 'MINOR_BUMP',
+      };
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual({
-        major: 1,
-        minor: 3,
-        patch: 0,
-      });
+      expect(getReleaseVersion(commits, currentVersion)).toEqual(expected);
     });
 
     it('should bump patch, and keep major & minor the same', () => {
       const commits: string[] = ['chore: did something'];
+      const expected: Release = {
+        version: {
+          current: currentVersion,
+          next: {
+            major: 1,
+            minor: 2,
+            patch: 4,
+          },
+        },
+        status: 'PATCH_BUMP',
+      };
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual({
-        major: 1,
-        minor: 2,
-        patch: 4,
-      });
+      expect(getReleaseVersion(commits, currentVersion)).toEqual(expected);
     });
 
     it('should return current version on nonsensical semantic commit', () => {
       const commits: string[] = ['qwerty: did something'];
+      const expected: Release = {
+        version: {
+          current: currentVersion,
+          next: currentVersion,
+        },
+        status: 'NO_BUMP',
+      };
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual(
-        currentVersion,
-      );
+      expect(getReleaseVersion(commits, currentVersion)).toEqual(expected);
     });
   });
 });
