@@ -4,7 +4,6 @@ import {
   isMinorBump,
   isPatchBump,
   isSemanticCommit,
-  Release,
   Version,
 } from './version';
 
@@ -133,17 +132,19 @@ describe('version', () => {
   });
 
   describe('getReleaseVersion', () => {
-    it('should return existing version on no semantic commits', () => {
+    it('should bump patch by default on no semantic commits', () => {
       const commits: string[] = ['did something', 'did something else'];
-      const expected: Release = {
-        version: {
-          current: currentVersion,
-          next: currentVersion,
-        },
-        status: 'NO_BUMP',
-      };
+      const { next } = getReleaseVersion(commits, currentVersion);
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual(expected);
+      expect(next).toEqual({
+        version: {
+          major: 1,
+          minor: 2,
+          patch: 4,
+        },
+        code: 10204,
+        name: '1.2.4',
+      });
     });
 
     it('should bump major and release minor and patch', () => {
@@ -152,66 +153,64 @@ describe('version', () => {
         'feat!: did something else',
       ];
 
-      const expected: Release = {
-        version: {
-          current: currentVersion,
-          next: {
-            major: 2,
-            minor: 0,
-            patch: 0,
-          },
-        },
-        status: 'MAJOR_BUMP',
-      };
+      const { next, status } = getReleaseVersion(commits, currentVersion);
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual(expected);
+      expect(status).toEqual('MAJOR_BUMP');
+      expect(next).toEqual({
+        version: {
+          major: 2,
+          minor: 0,
+          patch: 0,
+        },
+        code: 20000,
+        name: '2.0.0',
+      });
     });
 
     it('should bump minor, keep major the same and reset patch', () => {
       const commits: string[] = ['feat: did something'];
-      const expected: Release = {
-        version: {
-          current: currentVersion,
-          next: {
-            major: 1,
-            minor: 3,
-            patch: 0,
-          },
-        },
-        status: 'MINOR_BUMP',
-      };
+      const { next } = getReleaseVersion(commits, currentVersion);
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual(expected);
+      expect(next).toEqual({
+        code: 10300,
+        name: '1.3.0',
+        version: {
+          major: 1,
+          minor: 3,
+          patch: 0,
+        },
+      });
     });
 
     it('should bump patch, and keep major & minor the same', () => {
       const commits: string[] = ['chore: did something'];
-      const expected: Release = {
-        version: {
-          current: currentVersion,
-          next: {
-            major: 1,
-            minor: 2,
-            patch: 4,
-          },
-        },
-        status: 'PATCH_BUMP',
-      };
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual(expected);
+      const { next } = getReleaseVersion(commits, currentVersion);
+
+      expect(next).toEqual({
+        code: 10204,
+        name: '1.2.4',
+        version: {
+          major: 1,
+          minor: 2,
+          patch: 4,
+        },
+      });
     });
 
-    it('should return current version on nonsensical semantic commit', () => {
+    it('should bump patch on nonsensical semantic commit', () => {
       const commits: string[] = ['qwerty: did something'];
-      const expected: Release = {
-        version: {
-          current: currentVersion,
-          next: currentVersion,
-        },
-        status: 'NO_BUMP',
-      };
+      const { next } = getReleaseVersion(commits, currentVersion);
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual(expected);
+      expect(next).toEqual({
+        code: 10204,
+        name: '1.2.4',
+        version: {
+          major: 1,
+          minor: 2,
+          patch: 4,
+        },
+      });
     });
   });
 });
