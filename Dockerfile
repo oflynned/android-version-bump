@@ -13,4 +13,4 @@ RUN npm ci --only=production
 
 COPY . .
 
-ENTRYPOINT ["node", "index.js"]
+ENTRYPOINT ["node", "dist/index.js"]
