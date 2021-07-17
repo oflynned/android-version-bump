@@ -5,7 +5,8 @@ export type Key =
   | 'GRADLE-LOCATION'
   | 'TAG-PREFIX'
   | 'SKIP-CI'
-  | 'COMMIT-MESSAGE';
+  | 'COMMIT-MESSAGE'
+  | 'BUILD-NUMBER';
 
 export const getValue = (
   toolkit: Toolkit,
@@ -25,6 +26,10 @@ export const getTagPrefix = (toolkit: Toolkit): string => {
 
 export const isSkippingCi = (toolkit: Toolkit): boolean => {
   return getValue(toolkit, 'SKIP-CI', 'true') === 'true';
+};
+
+export const getBuildNumber = (toolkit: Toolkit): string => {
+  return getValue(toolkit, 'BUILD-NUMBER', '');
 };
 
 export const getCommitMessage = (
