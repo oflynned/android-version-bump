@@ -9,9 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: |
-          npm ci
-#          npm run lint
-          npm test
-          npm run build
-          npm run package
+      
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests
+        run: npm test
+      
+      - name: Build package
+        run: npm run build
+        
+      - name: Shrinkwrap production artifacts
+        run: npm run package
