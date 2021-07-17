@@ -24,11 +24,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@octokit/core": "^3.5.1",
     "actions-toolkit": "^6.0.1"
   },
   "devDependencies": {
     "@types/jest": "^26.0.24",
-    "@types/node": "^16.3.3",
+    "@types/node": "^14.17.5",
     "@typescript-eslint/parser": "^4.28.3",
     "@vercel/ncc": "^0.29.0",
     "eslint": "^7.30.0",
