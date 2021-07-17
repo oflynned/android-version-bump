@@ -2,17 +2,22 @@ export type Version = {
   major: number;
   minor: number;
   patch: number;
+  build?: number;
+};
+
+export type Build = {
+  version: Version;
+  name: string;
+  code: number;
 };
 
 export type Release = {
   status: Status;
-  version: {
-    current: Version;
-    next: Version;
-  };
+  current: Build;
+  next: Build;
 };
 
-export type Status = 'NO_BUMP' | 'MAJOR_BUMP' | 'MINOR_BUMP' | 'PATCH_BUMP';
+export type Status = 'MAJOR_BUMP' | 'MINOR_BUMP' | 'PATCH_BUMP';
 
 const getCommitIntent = (message: string): string => {
   const [commitIntent] = message.toLowerCase().split(':');
@@ -66,34 +71,51 @@ export const isSemanticCommit = (message: string): boolean => {
   return /^([a-zA-Z]+)(\(.+\))?(!)?:/.test(message);
 };
 
+export const getVersionName = ({
+  major,
+  minor,
+  patch,
+  build,
+}: Version): string => {
+  const versionName = `${major}.${minor}.${patch}`;
+
+  return build ? `${versionName}.${build}` : versionName;
+};
+
+export const getVersionCode = ({ major, minor, patch }: Version): number => {
+  return major * 10000 + minor * 100 + patch;
+};
+
 export const getReleaseVersion = (
   commits: string[],
   currentVersion: Version,
+  buildNumber?: number,
 ): Release => {
   const semanticCommits = commits.filter(isSemanticCommit);
-
-  if (semanticCommits.length === 0) {
-    return {
-      version: {
-        current: currentVersion,
-        next: currentVersion,
-      },
-      status: 'NO_BUMP',
-    };
-  }
-
   const isMajor = semanticCommits.some(isMajorBump);
 
   if (isMajor) {
+    const next: Version = {
+      major: currentVersion.major + 1,
+      minor: 0,
+      patch: 0,
+    };
+
+    if (buildNumber) {
+      next.build = buildNumber;
+    }
+
     return {
       status: 'MAJOR_BUMP',
-      version: {
-        current: currentVersion,
-        next: {
-          major: currentVersion.major + 1,
-          minor: 0,
-          patch: 0,
-        },
+      current: {
+        version: currentVersion,
+        name: getVersionName(currentVersion),
+        code: getVersionCode(currentVersion),
+      },
+      next: {
+        version: next,
+        name: getVersionName(next),
+        code: getVersionCode(next),
       },
     };
   }
@@ -101,40 +123,53 @@ export const getReleaseVersion = (
   const isMinor = semanticCommits.some(isMinorBump);
 
   if (isMinor) {
+    const next: Version = {
+      major: currentVersion.major,
+      minor: currentVersion.minor + 1,
+      patch: 0,
+    };
+
+    if (buildNumber) {
+      next.build = buildNumber;
+    }
+
     return {
-      version: {
-        current: currentVersion,
-        next: {
-          major: currentVersion.major,
-          minor: currentVersion.minor + 1,
-          patch: 0,
-        },
-      },
       status: 'MINOR_BUMP',
+      current: {
+        version: currentVersion,
+        name: getVersionName(currentVersion),
+        code: getVersionCode(currentVersion),
+      },
+      next: {
+        version: next,
+        name: getVersionName(next),
+        code: getVersionCode(next),
+      },
     };
   }
 
-  const isPatch = semanticCommits.some(isPatchBump);
+  // bump patch by default
+  const next: Version = {
+    major: currentVersion.major,
+    minor: currentVersion.minor,
+    patch: currentVersion.patch + 1,
+  };
 
-  if (isPatch) {
-    return {
-      version: {
-        current: currentVersion,
-        next: {
-          major: currentVersion.major,
-          minor: currentVersion.minor,
-          patch: currentVersion.patch + 1,
-        },
-      },
-      status: 'PATCH_BUMP',
-    };
+  if (buildNumber) {
+    next.build = buildNumber;
   }
 
   return {
-    version: {
-      current: currentVersion,
-      next: currentVersion,
+    status: 'PATCH_BUMP',
+    current: {
+      version: currentVersion,
+      name: getVersionName(currentVersion),
+      code: getVersionCode(currentVersion),
     },
-    status: 'NO_BUMP',
+    next: {
+      version: next,
+      name: getVersionName(next),
+      code: getVersionCode(next),
+    },
   };
 };
