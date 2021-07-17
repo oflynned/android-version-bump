@@ -1,5 +1,5 @@
 import {
-  getReleaseVersion,
+  bumpBuild,
   isMajorBump,
   isMinorBump,
   isPatchBump,
@@ -134,9 +134,9 @@ describe('version', () => {
   describe('getReleaseVersion', () => {
     it('should bump patch by default on no semantic commits', () => {
       const commits: string[] = ['did something', 'did something else'];
-      const { next } = getReleaseVersion(commits, currentVersion);
+      const build = bumpBuild(commits, currentVersion);
 
-      expect(next).toEqual({
+      expect(build).toEqual({
         version: {
           major: 1,
           minor: 2,
@@ -152,11 +152,9 @@ describe('version', () => {
         'feat: BREAKING CHANGE did something',
         'feat!: did something else',
       ];
+      const build = bumpBuild(commits, currentVersion);
 
-      const { next, status } = getReleaseVersion(commits, currentVersion);
-
-      expect(status).toEqual('MAJOR_BUMP');
-      expect(next).toEqual({
+      expect(build).toEqual({
         version: {
           major: 2,
           minor: 0,
@@ -169,9 +167,9 @@ describe('version', () => {
 
     it('should bump minor, keep major the same and reset patch', () => {
       const commits: string[] = ['feat: did something'];
-      const { next } = getReleaseVersion(commits, currentVersion);
+      const build = bumpBuild(commits, currentVersion);
 
-      expect(next).toEqual({
+      expect(build).toEqual({
         code: 10300,
         name: '1.3.0',
         version: {
@@ -184,10 +182,9 @@ describe('version', () => {
 
     it('should bump patch, and keep major & minor the same', () => {
       const commits: string[] = ['chore: did something'];
+      const build = bumpBuild(commits, currentVersion);
 
-      const { next } = getReleaseVersion(commits, currentVersion);
-
-      expect(next).toEqual({
+      expect(build).toEqual({
         code: 10204,
         name: '1.2.4',
         version: {
@@ -200,9 +197,9 @@ describe('version', () => {
 
     it('should bump patch on nonsensical semantic commit', () => {
       const commits: string[] = ['qwerty: did something'];
-      const { next } = getReleaseVersion(commits, currentVersion);
+      const build = bumpBuild(commits, currentVersion);
 
-      expect(next).toEqual({
+      expect(build).toEqual({
         code: 10204,
         name: '1.2.4',
         version: {
