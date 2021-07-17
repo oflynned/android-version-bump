@@ -2,7 +2,7 @@ export type Version = {
   major: number;
   minor: number;
   patch: number;
-  build?: number;
+  build?: number | string;
 };
 
 export type Build = {
@@ -10,14 +10,6 @@ export type Build = {
   name: string;
   code: number;
 };
-
-export type Release = {
-  status: Status;
-  current: Build;
-  next: Build;
-};
-
-export type Status = 'MAJOR_BUMP' | 'MINOR_BUMP' | 'PATCH_BUMP';
 
 const getCommitIntent = (message: string): string => {
   const [commitIntent] = message.toLowerCase().split(':');
@@ -86,11 +78,19 @@ export const getVersionCode = ({ major, minor, patch }: Version): number => {
   return major * 10000 + minor * 100 + patch;
 };
 
-export const getReleaseVersion = (
+export const getBuildFromVersion = (version: Version): Build => {
+  return {
+    version,
+    name: getVersionName(version),
+    code: getVersionCode(version),
+  };
+};
+
+export const bumpBuild = (
   commits: string[],
   currentVersion: Version,
-  buildNumber?: number,
-): Release => {
+  buildNumber?: string | number,
+): Build => {
   const semanticCommits = commits.filter(isSemanticCommit);
   const isMajor = semanticCommits.some(isMajorBump);
 
@@ -106,17 +106,9 @@ export const getReleaseVersion = (
     }
 
     return {
-      status: 'MAJOR_BUMP',
-      current: {
-        version: currentVersion,
-        name: getVersionName(currentVersion),
-        code: getVersionCode(currentVersion),
-      },
-      next: {
-        version: next,
-        name: getVersionName(next),
-        code: getVersionCode(next),
-      },
+      version: next,
+      name: getVersionName(next),
+      code: getVersionCode(next),
     };
   }
 
@@ -134,17 +126,9 @@ export const getReleaseVersion = (
     }
 
     return {
-      status: 'MINOR_BUMP',
-      current: {
-        version: currentVersion,
-        name: getVersionName(currentVersion),
-        code: getVersionCode(currentVersion),
-      },
-      next: {
-        version: next,
-        name: getVersionName(next),
-        code: getVersionCode(next),
-      },
+      version: next,
+      name: getVersionName(next),
+      code: getVersionCode(next),
     };
   }
 
@@ -160,16 +144,8 @@ export const getReleaseVersion = (
   }
 
   return {
-    status: 'PATCH_BUMP',
-    current: {
-      version: currentVersion,
-      name: getVersionName(currentVersion),
-      code: getVersionCode(currentVersion),
-    },
-    next: {
-      version: next,
-      name: getVersionName(next),
-      code: getVersionCode(next),
-    },
+    version: next,
+    name: getVersionName(next),
+    code: getVersionCode(next),
   };
 };
