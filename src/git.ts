@@ -1,12 +1,15 @@
-const getCommitsSinceSha = async (sha?: string): Promise<string[]> => {
-  return [];
+import { Toolkit } from 'actions-toolkit';
+
+const setCommitIdentity = async (toolkit: Toolkit): Promise<void> => {
+  await toolkit.exec('');
 };
 
-const getLastTagSha = async (): Promise<string> => {
-  return '';
+const createCommit = async (
+  toolkit: Toolkit,
+  commit: string,
+): Promise<void> => {
+  // await toolkit.exec()
 };
-
-const createCommit = async (): Promise<void> => {};
 
 const createTag = async (): Promise<void> => {};
 
