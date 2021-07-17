@@ -1,8 +1,8 @@
 {
-  "name": "typescript-action",
+  "name": "android-semantic-release",
   "version": "0.0.0",
-  "private": true,
-  "description": "TypeScript template action",
+  "private": false,
+  "description": "GitHub action for bumping Android repos using semantic releases.",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
@@ -13,22 +13,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/oflynned/Android-Semantic-Release.git"
   },
   "keywords": [
-    "actions",
-    "node",
-    "setup"
+    "android",
+    "semantic",
+    "version",
+    "release"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/artifact": "^0.5.2",
-    "@actions/core": "^1.4.0",
-    "@actions/exec": "^1.1.0",
-    "@actions/github": "^5.0.0",
-    "@actions/io": "^1.1.1",
-    "@actions/tool-cache": "^1.7.1",
     "actions-toolkit": "^6.0.1"
   },
   "devDependencies": {
