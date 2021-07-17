@@ -1,23 +1,61 @@
-import * as core from '@actions/core';
+import { Toolkit } from 'actions-toolkit';
+import {
+  getBuildNumber,
+  getCommitMessage,
+  getTagPrefix,
+  isSkippingCi,
+} from './env';
+import { createCommit, pushChanges, setGitIdentity } from './git';
+import {
+  doesVersionPropertiesExist,
+  getVersionProperties,
+  setVersionProperties,
+} from './gradle';
+import { Build, bumpBuild, getBuildFromVersion, Version } from './version';
 
-async function run(): Promise<void> {
-  try {
-    const buildGradleDirectory = `${process.env.GITHUB_WORKSPACE}/app/build.gradle`;
-    const tagPrefix = core.getInput('tag-prefix') ?? '';
-    const skipTag = core.getInput('skip-tag') === 'true';
-    const commitMessage = core.getInput('commit-message');
+Toolkit.run(async (tools): Promise<void> => {
+  const githubToken = process.env.GITHUB_TOKEN;
 
-    //
-    // core.debug(`Waiting ${ms} milliseconds ...`); // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-    //
-    // core.debug(new Date().toTimeString());
-    // await wait(parseInt(ms, 10));
-    // core.debug(new Date().toTimeString());
-    //
-    // core.setOutput('time', new Date().toTimeString());
-  } catch (error) {
-    core.setFailed(error.message);
+  if (!githubToken) {
+    tools.exit.failure('No GitHub token set in env, cannot continue run');
+    return;
   }
-}
 
-run();
+  try {
+    const tagPrefix = getTagPrefix(tools);
+    const skipCi = isSkippingCi(tools);
+    const buildNumber = getBuildNumber(tools);
+
+    const versionFileExists = await doesVersionPropertiesExist(tools);
+    let build: Build;
+
+    if (versionFileExists) {
+      const existingVersion = await getVersionProperties(tools);
+      const { commits } = tools.context.payload;
+
+      build = bumpBuild(commits ?? [], existingVersion, buildNumber);
+    } else {
+      // create version 0.0.1 by default in build.gradle if not exists
+      const defaultBuild: Version = {
+        major: 0,
+        minor: 0,
+        patch: 1,
+        build: buildNumber,
+      };
+
+      build = getBuildFromVersion(defaultBuild);
+    }
+
+    const message = getCommitMessage(tools, build, tagPrefix, skipCi);
+
+    await setVersionProperties(tools, build.version);
+    await setGitIdentity(tools);
+    await createCommit(tools, message);
+    await pushChanges(tools, build.name);
+
+    tools.exit.success(`Version bumped from to ${build.name} successfully!`);
+  } catch (e) {
+    tools.log.fatal(e);
+    tools.exit.failure('Failed to bump version!');
+  }
+});

@@ -1,5 +1,51 @@
-const createCommit = async (): Promise<void> => {};
+import { Toolkit } from 'actions-toolkit';
 
-const createTag = async (): Promise<void> => {};
+export const setGitIdentity = async (toolkit: Toolkit): Promise<void> => {
+  const defaultName = 'Automated Version Bump';
+  const name = process.env.GITHUB_USER ?? defaultName;
+  toolkit.log.log(`Setting git config name to ${name}`);
+  await toolkit.exec('git', ['config', 'user.name', name]);
 
-const createRelease = async (): Promise<void> => {};
+  const defaultEmail = 'android-semantic-release@users.noreply.github.com';
+  const email = process.env.GITHUB_EMAIL ?? defaultEmail;
+  toolkit.log.log(`Setting git config email to ${email}`);
+  await toolkit.exec('git', ['config', 'user.email', email]);
+};
+
+export const createCommit = async (
+  toolkit: Toolkit,
+  commit: string,
+): Promise<void> => {
+  try {
+    toolkit.log.log(`Creating version commit`);
+    await toolkit.exec('git', ['commit', '-a', '-m', commit]);
+  } catch (e) {
+    toolkit.log.warn(
+      `Commit failed, this shouldn't be a problem if you are using actions/checkout@v2`,
+    );
+  }
+};
+
+export const pushChanges = async (
+  toolkit: Toolkit,
+  version: string,
+  publishTag?: boolean,
+): Promise<void> => {
+  const remote = [
+    'https://',
+    process.env.GITHUB_ACTOR,
+    ':',
+    process.env.GITHUB_TOKEN,
+    '@github.com/',
+    process.env.GITHUB_REPOSITORY,
+    '.git',
+  ].join('');
+
+  if (publishTag) {
+    await toolkit.exec('git', ['tag', version]);
+    await toolkit.exec('git', ['push', remote, '--follow-tags']);
+    await toolkit.exec('git', ['push', remote, '--tags']);
+  } else {
+    await toolkit.exec('git', ['push', remote]);
+  }
+};

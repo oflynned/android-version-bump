@@ -1,5 +1,5 @@
 import {
-  getReleaseVersion,
+  bumpBuild,
   isMajorBump,
   isMinorBump,
   isPatchBump,
@@ -29,6 +29,10 @@ describe('version', () => {
       expect(isMajorBump('chore!: removed support for node 10')).toBeTruthy();
     });
 
+    it('should return true when message starts with major', () => {
+      expect(isMajorBump('major: removed support for node 10')).toBeTruthy();
+    });
+
     it('should return true when message is uppercase', () => {
       expect(
         isMajorBump('BREAKING CHANGE: removed support for node 10'),
@@ -53,6 +57,10 @@ describe('version', () => {
   describe('isMinorBump', () => {
     it('should return true for feat', () => {
       expect(isMinorBump('feat: add user login')).toBeTruthy();
+    });
+
+    it('should return true for minor', () => {
+      expect(isMinorBump('minor: add user login')).toBeTruthy();
     });
 
     it('should return true for feat when capitalised', () => {
@@ -92,6 +100,10 @@ describe('version', () => {
       expect(isPatchBump('CHORE: did something')).toBeTruthy();
     });
 
+    it('should return true when intent is patch', () => {
+      expect(isPatchBump('patch: did something')).toBeTruthy();
+    });
+
     it('should return false otherwise', () => {
       expect(isPatchBump('feat: add user login')).toBeFalsy();
     });
@@ -120,53 +132,82 @@ describe('version', () => {
   });
 
   describe('getReleaseVersion', () => {
-    it('should return existing version on no semantic commits', () => {
+    it('should bump patch by default on no semantic commits', () => {
       const commits: string[] = ['did something', 'did something else'];
+      const build = bumpBuild(commits, currentVersion);
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual(
-        currentVersion,
-      );
+      expect(build).toEqual({
+        version: {
+          major: 1,
+          minor: 2,
+          patch: 4,
+        },
+        code: 10204,
+        name: '1.2.4',
+      });
     });
 
     it('should bump major and release minor and patch', () => {
       const commits: string[] = [
-        'feat: breaking change',
+        'feat: BREAKING CHANGE did something',
         'feat!: did something else',
       ];
+      const build = bumpBuild(commits, currentVersion);
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual({
-        major: 2,
-        minor: 0,
-        patch: 0,
+      expect(build).toEqual({
+        version: {
+          major: 2,
+          minor: 0,
+          patch: 0,
+        },
+        code: 20000,
+        name: '2.0.0',
       });
     });
 
     it('should bump minor, keep major the same and reset patch', () => {
       const commits: string[] = ['feat: did something'];
+      const build = bumpBuild(commits, currentVersion);
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual({
-        major: 1,
-        minor: 3,
-        patch: 0,
+      expect(build).toEqual({
+        code: 10300,
+        name: '1.3.0',
+        version: {
+          major: 1,
+          minor: 3,
+          patch: 0,
+        },
       });
     });
 
     it('should bump patch, and keep major & minor the same', () => {
       const commits: string[] = ['chore: did something'];
+      const build = bumpBuild(commits, currentVersion);
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual({
-        major: 1,
-        minor: 2,
-        patch: 4,
+      expect(build).toEqual({
+        code: 10204,
+        name: '1.2.4',
+        version: {
+          major: 1,
+          minor: 2,
+          patch: 4,
+        },
       });
     });
 
-    it('should return current version on nonsensical semantic commit', () => {
+    it('should bump patch on nonsensical semantic commit', () => {
       const commits: string[] = ['qwerty: did something'];
+      const build = bumpBuild(commits, currentVersion);
 
-      expect(getReleaseVersion(commits, currentVersion)).toEqual(
-        currentVersion,
-      );
+      expect(build).toEqual({
+        code: 10204,
+        name: '1.2.4',
+        version: {
+          major: 1,
+          minor: 2,
+          patch: 4,
+        },
+      });
     });
   });
 });

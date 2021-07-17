@@ -2,6 +2,19 @@ export type Version = {
   major: number;
   minor: number;
   patch: number;
+  build?: number | string;
+};
+
+export type Build = {
+  version: Version;
+  name: string;
+  code: number;
+};
+
+const getCommitIntent = (message: string): string => {
+  const [commitIntent] = message.toLowerCase().split(':');
+
+  return commitIntent;
 };
 
 export const isMajorBump = (message: string): boolean => {
@@ -9,17 +22,26 @@ export const isMajorBump = (message: string): boolean => {
     return true;
   }
 
-  const [intent] = message.split(':');
+  const commitIntent = getCommitIntent(message);
+  if (commitIntent.includes('!')) {
+    return true;
+  }
 
-  return message.startsWith(intent) && intent.includes('!');
+  const intents = ['major'];
+
+  return intents.some((intent) => commitIntent.startsWith(intent));
 };
 
 export const isMinorBump = (message: string): boolean => {
-  return message.toLowerCase().startsWith('feat');
+  const intents = ['minor', 'feat'];
+  const commitIntent = getCommitIntent(message);
+
+  return intents.some((intent) => commitIntent.startsWith(intent));
 };
 
 export const isPatchBump = (message: string): boolean => {
   const intents = [
+    'patch',
     'build',
     'chore',
     'ci',
@@ -31,54 +53,99 @@ export const isPatchBump = (message: string): boolean => {
     'style',
     'test',
   ];
-  const lowerCaseMessage = message.toLowerCase();
 
-  return intents.some((intent) => lowerCaseMessage.startsWith(intent));
+  const commitIntent = getCommitIntent(message);
+
+  return intents.some((intent) => commitIntent.startsWith(intent));
 };
 
 export const isSemanticCommit = (message: string): boolean => {
   return /^([a-zA-Z]+)(\(.+\))?(!)?:/.test(message);
 };
 
-export const getReleaseVersion = (
+export const getVersionName = ({
+  major,
+  minor,
+  patch,
+  build,
+}: Version): string => {
+  const versionName = `${major}.${minor}.${patch}`;
+
+  return build ? `${versionName}.${build}` : versionName;
+};
+
+export const getVersionCode = ({ major, minor, patch }: Version): number => {
+  return major * 10000 + minor * 100 + patch;
+};
+
+export const getBuildFromVersion = (version: Version): Build => {
+  return {
+    version,
+    name: getVersionName(version),
+    code: getVersionCode(version),
+  };
+};
+
+export const bumpBuild = (
   commits: string[],
   currentVersion: Version,
-): Version => {
+  buildNumber?: string | number,
+): Build => {
   const semanticCommits = commits.filter(isSemanticCommit);
-
-  if (semanticCommits.length === 0) {
-    return currentVersion;
-  }
-
   const isMajor = semanticCommits.some(isMajorBump);
 
   if (isMajor) {
-    return {
+    const next: Version = {
       major: currentVersion.major + 1,
       minor: 0,
       patch: 0,
+    };
+
+    if (buildNumber) {
+      next.build = buildNumber;
+    }
+
+    return {
+      version: next,
+      name: getVersionName(next),
+      code: getVersionCode(next),
     };
   }
 
   const isMinor = semanticCommits.some(isMinorBump);
 
   if (isMinor) {
-    return {
+    const next: Version = {
       major: currentVersion.major,
       minor: currentVersion.minor + 1,
       patch: 0,
     };
-  }
 
-  const isPatch = semanticCommits.some(isPatchBump);
+    if (buildNumber) {
+      next.build = buildNumber;
+    }
 
-  if (isPatch) {
     return {
-      major: currentVersion.major,
-      minor: currentVersion.minor,
-      patch: currentVersion.patch + 1,
+      version: next,
+      name: getVersionName(next),
+      code: getVersionCode(next),
     };
   }
 
-  return currentVersion;
+  // bump patch by default
+  const next: Version = {
+    major: currentVersion.major,
+    minor: currentVersion.minor,
+    patch: currentVersion.patch + 1,
+  };
+
+  if (buildNumber) {
+    next.build = buildNumber;
+  }
+
+  return {
+    version: next,
+    name: getVersionName(next),
+    code: getVersionCode(next),
+  };
 };
