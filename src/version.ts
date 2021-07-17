@@ -5,8 +5,19 @@ export type Version = {
 };
 
 export type Release = {
-  version: Version;
-  isReleasable: boolean;
+  status: Status;
+  version: {
+    current: Version;
+    next: Version;
+  };
+};
+
+export type Status = 'NO_BUMP' | 'MAJOR_BUMP' | 'MINOR_BUMP' | 'PATCH_BUMP';
+
+const getCommitIntent = (message: string): string => {
+  const [commitIntent] = message.toLowerCase().split(':');
+
+  return commitIntent;
 };
 
 export const isMajorBump = (message: string): boolean => {
@@ -14,17 +25,26 @@ export const isMajorBump = (message: string): boolean => {
     return true;
   }
 
-  const [intent] = message.split(':');
+  const commitIntent = getCommitIntent(message);
+  if (commitIntent.includes('!')) {
+    return true;
+  }
 
-  return message.startsWith(intent) && intent.includes('!');
+  const intents = ['major'];
+
+  return intents.some((intent) => commitIntent.startsWith(intent));
 };
 
 export const isMinorBump = (message: string): boolean => {
-  return message.toLowerCase().startsWith('feat');
+  const intents = ['minor', 'feat'];
+  const commitIntent = getCommitIntent(message);
+
+  return intents.some((intent) => commitIntent.startsWith(intent));
 };
 
 export const isPatchBump = (message: string): boolean => {
   const intents = [
+    'patch',
     'build',
     'chore',
     'ci',
@@ -36,9 +56,10 @@ export const isPatchBump = (message: string): boolean => {
     'style',
     'test',
   ];
-  const lowerCaseMessage = message.toLowerCase();
 
-  return intents.some((intent) => lowerCaseMessage.startsWith(intent));
+  const commitIntent = getCommitIntent(message);
+
+  return intents.some((intent) => commitIntent.startsWith(intent));
 };
 
 export const isSemanticCommit = (message: string): boolean => {
@@ -53,8 +74,11 @@ export const getReleaseVersion = (
 
   if (semanticCommits.length === 0) {
     return {
-      isReleasable: false,
-      version: currentVersion,
+      version: {
+        current: currentVersion,
+        next: currentVersion,
+      },
+      status: 'NO_BUMP',
     };
   }
 
@@ -62,11 +86,14 @@ export const getReleaseVersion = (
 
   if (isMajor) {
     return {
-      isReleasable: true,
+      status: 'MAJOR_BUMP',
       version: {
-        major: currentVersion.major + 1,
-        minor: 0,
-        patch: 0,
+        current: currentVersion,
+        next: {
+          major: currentVersion.major + 1,
+          minor: 0,
+          patch: 0,
+        },
       },
     };
   }
@@ -75,12 +102,15 @@ export const getReleaseVersion = (
 
   if (isMinor) {
     return {
-      isReleasable: true,
       version: {
-        major: currentVersion.major,
-        minor: currentVersion.minor + 1,
-        patch: 0,
+        current: currentVersion,
+        next: {
+          major: currentVersion.major,
+          minor: currentVersion.minor + 1,
+          patch: 0,
+        },
       },
+      status: 'MINOR_BUMP',
     };
   }
 
@@ -88,17 +118,23 @@ export const getReleaseVersion = (
 
   if (isPatch) {
     return {
-      isReleasable: true,
       version: {
-        major: currentVersion.major,
-        minor: currentVersion.minor,
-        patch: currentVersion.patch + 1,
+        current: currentVersion,
+        next: {
+          major: currentVersion.major,
+          minor: currentVersion.minor,
+          patch: currentVersion.patch + 1,
+        },
       },
+      status: 'PATCH_BUMP',
     };
   }
 
   return {
-    isReleasable: false,
-    version: currentVersion,
+    version: {
+      current: currentVersion,
+      next: currentVersion,
+    },
+    status: 'NO_BUMP',
   };
 };
