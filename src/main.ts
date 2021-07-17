@@ -14,13 +14,6 @@ import {
 import { Build, bumpBuild, getBuildFromVersion, Version } from './version';
 
 Toolkit.run(async (tools): Promise<void> => {
-  const githubToken = process.env.GITHUB_TOKEN;
-
-  if (!githubToken) {
-    tools.exit.failure('No GitHub token set in env, cannot continue run');
-    return;
-  }
-
   try {
     const tagPrefix = getTagPrefix(tools);
     const skipCi = isSkippingCi(tools);

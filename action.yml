@@ -1,11 +1,26 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-inputs:
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+name: 'Edmond Ó Floinn'
+author: 'oflynned'
+description: 'GitHub action for bumping Gradle versions using semantic commits'
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
+  using: docker
+  image: Dockerfile
+branding:
+  icon: chevron-up
+  color: blue
+inputs:
+  tag-prefix:
+    required: false
+    description: 'Prefix to add to git tag'
+    default: ''
+  skip-ci:
+    required: false
+    description: 'Affix [skip-ci] so that a cyclical ci loop does not happen'
+    default: 'true'
+  commit-message:
+    required: false
+    description: 'Commit message when a release is successful'
+    default: ''
+  build-number:
+    required: false
+    description: 'Build number to generated from ci to show as part of the version'
+    default: ''
