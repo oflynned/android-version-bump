@@ -34,25 +34,23 @@ export const setVersionProperties = async (
 ): Promise<void> => {
   await toolkit.exec('touch', ['version.properties']);
   await toolkit.exec('echo', [
-    `majorVersion=${major}`,
+    `"majorVersion=${major}"`,
     '>',
     'version.properties',
   ]);
   await toolkit.exec('echo', [
-    `minorVersion=${minor}`,
+    `"minorVersion=${minor}"`,
     '>>',
     'version.properties',
   ]);
   await toolkit.exec('echo', [
-    `patchVersion=${patch}`,
+    `"patchVersion=${patch}"`,
     '>>',
     'version.properties',
   ]);
-  await toolkit.exec('echo', [
-    `buildNumber=${build ?? ''}`,
-    '>>',
-    'version.properties',
-  ]);
+
+  const buildNumber = build ? `"buildNumber=${build}"` : `"buildNumber="`;
+  await toolkit.exec('echo', [buildNumber, '>>', 'version.properties']);
 
   await toolkit.exec('cat', ['version.properties']);
 };
