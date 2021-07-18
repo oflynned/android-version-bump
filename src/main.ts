@@ -18,8 +18,8 @@ Toolkit.run(async (tools): Promise<void> => {
     const tagPrefix = getTagPrefix(tools);
     const skipCi = isSkippingCi(tools);
     const buildNumber = getBuildNumber(tools);
-
     const versionFileExists = await doesVersionPropertiesExist(tools);
+
     let build: Build;
 
     if (versionFileExists) {
