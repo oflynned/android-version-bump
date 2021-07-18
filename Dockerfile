@@ -8,10 +8,9 @@ LABEL "com.github.actions.color"="blue"
 RUN apt-get update
 RUN apt-get install -y git
 
-COPY . ./
+COPY . .
 
 RUN npm ci
-RUN npm run clean
 RUN npm run build
 RUN npm run package
 RUN npm prune --production
