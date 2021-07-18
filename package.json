@@ -5,6 +5,7 @@
   "description": "GitHub action for bumping Android repos using semantic releases.",
   "main": "lib/main.js",
   "scripts": {
+    "clean": "rimraf lib dist",
     "build": "tsc",
     "format": "prettier --write **/*.ts",
     "lint": "eslint src/**/*.ts",
@@ -21,7 +22,7 @@
     "version",
     "release"
   ],
-  "author": "",
+  "author": "oflynned",
   "license": "MIT",
   "dependencies": {
     "@octokit/core": "^3.5.1",
@@ -43,6 +44,7 @@
     "npm-check-updates": "^11.8.3",
     "prettier": "^2.3.2",
     "prettier-plugin-organize-imports": "^2.2.0",
+    "rimraf": "^3.0.2",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.5"
   }
