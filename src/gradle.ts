@@ -1,10 +1,12 @@
 import { Toolkit } from 'actions-toolkit';
-import { readFile, writeFile } from 'fs/promises';
+import Fs from 'fs/promises';
 import { Version } from './version';
 
-export const doesVersionPropertiesExist = async (): Promise<boolean> => {
+export const doesVersionPropertiesExist = async (
+  fs: typeof Fs,
+): Promise<boolean> => {
   try {
-    const file = await readFile('version.properties');
+    const file = await fs.readFile('version.properties');
 
     return file?.toString().length > 0;
   } catch (e) {
@@ -28,6 +30,7 @@ export const getVersionProperties = async (
 };
 
 export const setVersionProperties = async (
+  fs: typeof Fs,
   toolkit: Toolkit,
   { major, minor, patch, build }: Version,
 ): Promise<void> => {
@@ -38,7 +41,7 @@ export const setVersionProperties = async (
     `buildNumber=${build ?? ''}`,
   ].join('\n');
 
-  await writeFile('version.properties', contents);
+  await fs.writeFile('version.properties', contents);
 
   await toolkit.exec('cat', ['version.properties']);
 };

@@ -1,4 +1,5 @@
 import { Toolkit } from 'actions-toolkit';
+import fs from 'fs/promises';
 import {
   getBuildNumber,
   getCommitMessage,
@@ -18,7 +19,7 @@ Toolkit.run(async (tools): Promise<void> => {
     const tagPrefix = getTagPrefix(tools);
     const skipCi = isSkippingCi(tools);
     const buildNumber = getBuildNumber(tools);
-    const versionFileExists = await doesVersionPropertiesExist();
+    const versionFileExists = await doesVersionPropertiesExist(fs);
 
     let build: Build;
 
@@ -41,7 +42,7 @@ Toolkit.run(async (tools): Promise<void> => {
 
     const message = getCommitMessage(tools, build, tagPrefix, skipCi);
 
-    await setVersionProperties(tools, build.version);
+    await setVersionProperties(fs, tools, build.version);
     await setGitIdentity(tools);
     await createCommit(tools, message);
     await pushChanges(tools, build.name, true);

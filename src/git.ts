@@ -18,7 +18,6 @@ export const createCommit = async (
 ): Promise<void> => {
   try {
     toolkit.log.log(`Creating version commit`);
-    toolkit.log.log(`"${commit}"`);
     toolkit.log.log({ commit });
 
     await toolkit.exec('git', ['add', 'version.properties']);
@@ -51,7 +50,7 @@ export const pushChanges = async (
     await toolkit.exec('git', ['push', remote, '--follow-tags']);
     await toolkit.exec('git', ['push', remote, '--tags']);
   } else {
-    toolkit.log.log('Not publishing tag');
+    toolkit.log.log('Not publishing tag, pushing instead');
     await toolkit.exec('git', ['push', remote]);
   }
 };

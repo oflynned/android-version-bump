@@ -1,8 +1,10 @@
 import { Toolkit } from 'actions-toolkit';
+import Fs from 'fs/promises';
 import { mock } from 'jest-mock-extended';
 import { doesVersionPropertiesExist, getVersionProperties } from './gradle';
 
 const toolkit = mock<Toolkit>();
+const fs = mock<typeof Fs>();
 
 describe('Gradle', () => {
   beforeEach(() => {
@@ -11,23 +13,23 @@ describe('Gradle', () => {
 
   describe('doesVersionPropertiesExist', () => {
     it('should return false on exception', async () => {
-      toolkit.readFile.mockImplementation(async () => {
+      fs.readFile.mockImplementation(async () => {
         throw new Error();
       });
 
-      await expect(doesVersionPropertiesExist(toolkit)).resolves.toBeFalsy();
+      await expect(doesVersionPropertiesExist(fs)).resolves.toBeFalsy();
     });
 
     it('should return false on empty file', async () => {
-      toolkit.readFile.mockImplementation(async () => '');
+      fs.readFile.mockImplementation(async () => '');
 
-      await expect(doesVersionPropertiesExist(toolkit)).resolves.toBeFalsy();
+      await expect(doesVersionPropertiesExist(fs)).resolves.toBeFalsy();
     });
 
     it('should return true on file containing text', async () => {
-      toolkit.readFile.mockImplementation(async () => 'majorVersion=1');
+      fs.readFile.mockImplementation(async () => 'majorVersion=1');
 
-      await expect(doesVersionPropertiesExist(toolkit)).resolves.toBeTruthy();
+      await expect(doesVersionPropertiesExist(fs)).resolves.toBeTruthy();
     });
   });
 
