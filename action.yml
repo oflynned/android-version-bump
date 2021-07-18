@@ -21,3 +21,6 @@ inputs:
   build-number:
     required: false
     description: 'Build number to generated from ci to show as part of the version'
+outputs:
+  newTag:
+    description: 'The newly created tag'
