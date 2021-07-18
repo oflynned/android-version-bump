@@ -18,9 +18,9 @@ export const getVersionProperties = async (
   toolkit: Toolkit,
 ): Promise<Pick<Version, 'major' | 'minor' | 'patch'>> => {
   const file = (await toolkit.readFile('version.properties')).toString();
-  const major = file.match(/(majorVersion=)(\d)/);
-  const minor = file.match(/(minorVersion=)(\d)/);
-  const patch = file.match(/(patchVersion=)(\d)/);
+  const major = file.match(/(majorVersion=)(\d+)/);
+  const minor = file.match(/(minorVersion=)(\d+)/);
+  const patch = file.match(/(patchVersion=)(\d+)/);
 
   return {
     major: major && major.length > 1 ? Number.parseInt(major[2]) : 0,

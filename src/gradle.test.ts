@@ -68,6 +68,23 @@ describe('Gradle', () => {
       });
     });
 
+    it('should parse 10 as integer and not stringified truncation', async () => {
+      toolkit.readFile.mockImplementation(async () => {
+        return `
+          majorVersion=1
+          minorVersion=0
+          patchVersion=10
+          buildNumber=
+        `;
+      });
+
+      await expect(getVersionProperties(toolkit)).resolves.toEqual({
+        major: 1,
+        minor: 0,
+        patch: 10,
+      });
+    });
+
     it('should return 0.0.0 on empty file', async () => {
       toolkit.readFile.mockImplementation(async () => '');
 
