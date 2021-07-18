@@ -1,11 +1,10 @@
 import { Toolkit } from 'actions-toolkit';
+import { readFile, writeFile } from 'fs/promises';
 import { Version } from './version';
 
-export const doesVersionPropertiesExist = async (
-  toolkit: Toolkit,
-): Promise<boolean> => {
+export const doesVersionPropertiesExist = async (): Promise<boolean> => {
   try {
-    const file = await toolkit.readFile('version.properties');
+    const file = await readFile('version.properties');
 
     return file?.toString().length > 0;
   } catch (e) {
@@ -32,25 +31,14 @@ export const setVersionProperties = async (
   toolkit: Toolkit,
   { major, minor, patch, build }: Version,
 ): Promise<void> => {
-  await toolkit.exec('touch', ['version.properties']);
-  await toolkit.exec('echo', [
-    `"majorVersion=${major}"`,
-    '>',
-    'version.properties',
-  ]);
-  await toolkit.exec('echo', [
-    `"minorVersion=${minor}"`,
-    '>>',
-    'version.properties',
-  ]);
-  await toolkit.exec('echo', [
-    `"patchVersion=${patch}"`,
-    '>>',
-    'version.properties',
-  ]);
+  const contents = [
+    `majorVersion=${major}`,
+    `minorVersion=${minor}`,
+    `patchVersion=${patch}`,
+    `buildNumber=${build ?? ''}`,
+  ].join('\n');
 
-  const buildNumber = build ? `"buildNumber=${build}"` : `"buildNumber="`;
-  await toolkit.exec('echo', [buildNumber, '>>', 'version.properties']);
+  await writeFile('version.properties', contents);
 
   await toolkit.exec('cat', ['version.properties']);
 };
