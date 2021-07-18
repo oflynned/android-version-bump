@@ -5,7 +5,7 @@ LABEL "com.github.actions.description"="Automated version bump for Android apps.
 LABEL "com.github.actions.icon"="chevron-up"
 LABEL "com.github.actions.color"="blue"
 
-COPY package*.json ./
+COPY . .
 
 RUN apt-get update
 RUN apt-get install -y git
@@ -13,7 +13,5 @@ RUN apt-get install -y git
 RUN npm ci
 RUN npm run build
 RUN npm run package
-
-COPY . .
 
 ENTRYPOINT ["node", "dist/index.js"]
