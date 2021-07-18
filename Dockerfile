@@ -1,14 +1,14 @@
-FROM node:14.17-slim as build
+FROM node:14.17-slim
 
 LABEL "com.github.actions.name"="Automated version bump for Android apps."
 LABEL "com.github.actions.description"="Automated version bump for Android apps."
 LABEL "com.github.actions.icon"="chevron-up"
 LABEL "com.github.actions.color"="blue"
 
-COPY . .
-
 RUN apt-get update
 RUN apt-get install -y git
+
+COPY . ./
 
 RUN npm ci
 RUN npm run clean
