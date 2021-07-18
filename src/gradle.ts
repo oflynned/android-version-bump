@@ -54,5 +54,5 @@ export const setVersionProperties = async (
     'version.properties',
   ]);
 
-  await toolkit.exec('pwd');
+  await toolkit.exec('cat', ['version.properties']);
 };

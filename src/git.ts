@@ -46,10 +46,12 @@ export const pushChanges = async (
   ].join('');
 
   if (publishTag) {
+    toolkit.log.log('Publishing tag');
     await toolkit.exec('git', ['tag', version]);
     await toolkit.exec('git', ['push', remote, '--follow-tags']);
     await toolkit.exec('git', ['push', remote, '--tags']);
   } else {
+    toolkit.log.log('Not publishing tag');
     await toolkit.exec('git', ['push', remote]);
   }
 };
