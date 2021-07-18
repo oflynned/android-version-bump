@@ -18,7 +18,9 @@ export const createCommit = async (
 ): Promise<void> => {
   try {
     toolkit.log.log(`Creating version commit`);
-    await toolkit.exec('git', ['commit', '-a', '-m', commit]);
+    toolkit.log.log(commit);
+    await toolkit.exec('git', ['add', 'version.properties']);
+    await toolkit.exec('git', ['commit', '-m', commit]);
   } catch (e) {
     toolkit.log.warn(
       `Commit failed, this shouldn't be a problem if you are using actions/checkout@v2`,
