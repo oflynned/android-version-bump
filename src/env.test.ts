@@ -28,6 +28,14 @@ describe('Env', () => {
       expect(result).toEqual('release: v1.2.3');
     });
 
+    it('should default message on empty string', () => {
+      toolkit.inputs['INPUT_COMMIT-MESSAGE'] = '';
+
+      const result = getCommitMessage(toolkit, build, 'v', false);
+
+      expect(result).toEqual('release: v1.2.3');
+    });
+
     it('should set message from toolkit set', () => {
       toolkit.inputs['INPUT_COMMIT-MESSAGE'] = 'release: new version!';
 

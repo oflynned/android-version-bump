@@ -45,5 +45,5 @@ export const getCommitMessage = (
   );
   const flag = skipCi ? '[skip-ci]' : '';
 
-  return `${message} ${flag}`.trim();
+  return `${message.length > 0 ? message : defaultMessage} ${flag}`.trim();
 };
