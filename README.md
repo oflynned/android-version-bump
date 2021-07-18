@@ -3,3 +3,5 @@
 # Android Semantic Version Bump
 
 This action uses semantic commits to automate version bumping in native Android repos and creates a release on every successful merge to master.
+
+Inspired by [npm version bump](https://github.com/phips28/gh-action-bump-version).
