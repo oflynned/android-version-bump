@@ -1,4 +1,4 @@
-[![CI](https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml/badge.svg)](https://github.com/oflynned/Android-Semantic-Release/actions)
+[![CI](https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml/badge.svg)](https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml)
 [![codecov](https://codecov.io/gh/oflynned/Android-Semantic-Release/branch/master/graph/badge.svg?token=VTW7E1X43G)](https://codecov.io/gh/oflynned/Android-Semantic-Release)
 
 # Android Semantic Version Bump
