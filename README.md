@@ -187,3 +187,4 @@ The action also outputs a tag that you can use in later stages of the workflow l
     prerelease: false
 ```
 
+Make sure you also assign the bump version step its own id (in this case it was already set to `id: bump_version`)
