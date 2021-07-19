@@ -14,7 +14,16 @@ jobs:
         run: npm ci
         
       - name: Run tests
-        run: npm test
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          yml: codecov.yml
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Ensure build & shrinkwrap artifacts work
+        run: npm run build && npm run package
 
       - name: Bump version
         uses: 'phips28/gh-action-bump-version@master'
@@ -22,9 +31,3 @@ jobs:
           tag-prefix: 'v'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Build package
-        run: npm run build
-        
-      - name: Shrinkwrap production artifacts
-        run: npm run package
