@@ -47,7 +47,7 @@ Toolkit.run(async (tools): Promise<void> => {
     await createCommit(tools, message);
     await pushChanges(tools, build.name, true);
 
-    console.log(`::set-output name=newTag::${build.name}`);
+    console.log(`::set-output name=new_tag::${build.name}`);
 
     tools.exit.success(`Version bumped version to ${build.name} successfully!`);
   } catch (e) {
