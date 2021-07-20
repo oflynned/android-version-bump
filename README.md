@@ -1,16 +1,23 @@
-[![CI](https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml/badge.svg)](https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml)
-[![codecov](https://codecov.io/gh/oflynned/Android-Semantic-Release/branch/master/graph/badge.svg?token=VTW7E1X43G)](https://codecov.io/gh/oflynned/Android-Semantic-Release)
+<h1 style="text-align: center">
+Android Semantic Version Bump
+</h1>
 
-# Android Semantic Version Bump
+<p style="text-align: center">
+  <a href="https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml">
+    <img alt="GitHub Actions status" src="https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml/badge.svg">
+  </a>
+  <a href="https://codecov.io/gh/oflynned/Android-Semantic-Release">
+    <img src="https://codecov.io/gh/oflynned/Android-Semantic-Release/branch/master/graph/badge.svg?token=VTW7E1X43G" alt="Codecov">
+  </a>
+</p>
 
 Sick of depending on fastlane or bumping versions manually?
 
 This action uses semantic commits to automate version bumping in native Android repos and creates a release on every successful merge to master.
 By using this action, your CI runner can examine the commits in the event and bump the semantic version accordingly as long as you are using conventional commits.
 If you are not using conventional commits, it will just bump the patch version consistently.
-Keep in mind that the max patch version is 99 on Android if you use the default version code generator.
 
-Inspired by [npm version bump](https://github.com/phips28/gh-action-bump-version).
+Keep in mind that the max patch version is 99 on Android if you use the default version code generator. Inspired by [npm version bump](https://github.com/phips28/gh-action-bump-version). :tada:
 
 ## Installation
 
@@ -25,7 +32,7 @@ It's recommended to use `actions/checkout@v2` when checking out the repo.
 Add the following to your yaml workflow declaration. 
 Make sure to bump **before** building any artifacts so that the correct versions are applied.
 
-```
+```yaml
 - name: Bump version
   id: bump_version
   uses: oflynned/Android-Semantic-Release@master
@@ -40,7 +47,7 @@ The CI will create a `version.properties` by default, but you can also create th
 Remember, creating a file with 0.0.1 will bump it to 0.0.2 on first run.
 Not creating any `version.properties` will make the CI action handle this edge case itself and create the first version 0.0.1 without bumping.
 
-```
+```properties
 majorVersion=1
 minorVersion=0
 patchVersion=0
@@ -55,7 +62,7 @@ The build number can remain unset if you are using the default version name gene
 
 The version properties file must first be loaded into the Gradle context. 
 Add this to the top of `build.gradle`
-```
+```groovy
 Properties props = new Properties()
 props.load(new FileInputStream("$project.rootDir/version.properties"))
 props.each { prop ->
@@ -65,7 +72,7 @@ props.each { prop ->
 
 You can define how version name & codes are generated in that file:
 
-```
+```groovy
 private Integer generateVersionCode() {
     int major = ext.majorVersion as Integer
     int minor = ext.minorVersion as Integer
@@ -85,7 +92,7 @@ private String generateVersionName() {
 
 You then use those two functions in your config in the same file:
 
-```
+```groovy
 android {
     defaultConfig {
         ...
@@ -101,12 +108,12 @@ android {
 ### Major
 
 Bumps on the following intents:
-```
+```text
 major: drop support for api v21
 ```
 
 Also triggered if the commit body contains `BREAKING CHANGE` or if the intent contains a `!`.
-```
+```text
 refactor!: drop support for api v21
 refactor: BREAKING CHANGE drop support for api v21  
 ```
@@ -116,7 +123,7 @@ If any commit like this is in the list of commits within the event, then the **m
 ### Minor
 
 Bumps on the following intents:
-```
+```text
 feat: add oauth login with google
 minor: allow user to delete account
 ```
@@ -135,7 +142,7 @@ Providing the build number will automatically affix this to the version name
 
 Enable this field by passing a build number/string/SHA as an env var to the action:
 
-```
+```yaml
 - name: Bump version
   id: bump_version
   uses: oflynned/Android-Semantic-Release@master
@@ -175,7 +182,7 @@ Pass these in the `with:` block
 
 The action also outputs a tag that you can use in later stages of the workflow like so. 
 
-```
+```yaml
 - name: Create release
   id: create_release
   uses: actions/create-release@v1
