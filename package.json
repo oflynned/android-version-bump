@@ -5,14 +5,15 @@
   "description": "GitHub action for bumping Android repos using semantic releases.",
   "main": "lib/main.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --project tsconfig.json",
     "clean": "rimraf lib dist",
     "format": "prettier --write **/*.ts",
     "lint": "eslint src/**/*.ts",
     "package": "ncc build --source-map",
     "prepare": "husky install",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "typecheck": "tsc --noEmit --project tsconfig.json"
   },
   "repository": {
     "type": "git",
