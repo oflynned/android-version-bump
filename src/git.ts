@@ -24,7 +24,7 @@ export const createCommit = async (
     await toolkit.exec('git', ['commit', '-m', commit]);
   } catch (e) {
     toolkit.log.warn(
-      `Commit failed, this shouldn't be a problem if you are using actions/checkout@v2`,
+      `Commit failed, but this shouldn't be a problem if you are using actions/checkout@v2`,
     );
   }
 };
