@@ -1,8 +1,8 @@
-<h1 style="text-align: center">
+<h1 align="center">
 Android Semantic Version Bump
 </h1>
 
-<p style="text-align: center">
+<p align="center">
   <a href="https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml">
     <img alt="GitHub Actions status" src="https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml/badge.svg">
   </a>
