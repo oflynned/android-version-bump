@@ -48,4 +48,4 @@ jobs:
           tag_name: ${{ steps.bump_version.outputs.newTag }}
           release_name: ${{ steps.bump_version.outputs.newTag }}
           draft: false
-          prerelease: true
+          prerelease: false
