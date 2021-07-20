@@ -2,34 +2,34 @@ import { Toolkit } from 'actions-toolkit';
 import { Build } from './version';
 
 export type Key =
-  | 'GRADLE-LOCATION'
-  | 'TAG-PREFIX'
-  | 'SKIP-CI'
-  | 'COMMIT-MESSAGE'
-  | 'BUILD-NUMBER';
+  | 'gradle_location'
+  | 'tag_prefix'
+  | 'skip_ci'
+  | 'commit_message'
+  | 'build_number';
 
 export const getValue = (
   toolkit: Toolkit,
   key: Key,
   fallback?: string,
 ): string => {
-  return toolkit.inputs[`INPUT_${key}`] ?? fallback ?? '';
+  return toolkit.inputs[key] ?? fallback ?? '';
 };
 
 export const getGradleLocation = (toolkit: Toolkit): string => {
-  return getValue(toolkit, 'GRADLE-LOCATION', 'app/build.gradle');
+  return getValue(toolkit, 'gradle_location', 'app/build.gradle');
 };
 
 export const getTagPrefix = (toolkit: Toolkit): string => {
-  return getValue(toolkit, 'TAG-PREFIX', 'v');
+  return getValue(toolkit, 'tag_prefix', 'v');
 };
 
 export const isSkippingCi = (toolkit: Toolkit): boolean => {
-  return getValue(toolkit, 'SKIP-CI', 'true') === 'true';
+  return getValue(toolkit, 'skip_ci', 'true') === 'true';
 };
 
 export const getBuildNumber = (toolkit: Toolkit): string => {
-  return getValue(toolkit, 'BUILD-NUMBER', '');
+  return getValue(toolkit, 'build_number', '');
 };
 
 export const getCommitMessage = (
@@ -38,10 +38,11 @@ export const getCommitMessage = (
   tagPrefix: string,
   skipCi: boolean,
 ): string => {
-  const defaultMessage = `release: ${tagPrefix}${build.name}`;
-  const message = getValue(toolkit, 'COMMIT-MESSAGE', defaultMessage).replace(
+  const tagName = `${tagPrefix}${build.name}`;
+  const defaultMessage = `release: ${tagName}`;
+  const message = getValue(toolkit, 'commit_message', defaultMessage).replace(
     '{{version}}',
-    build.name,
+    tagName,
   );
   const flag = skipCi ? '[skip-ci]' : '';
 
