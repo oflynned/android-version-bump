@@ -1,5 +1,5 @@
 <h1 align="center">
-Android Semantic Version Bump
+Android Version Bump
 </h1>
 
 <p align="center">
