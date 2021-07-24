@@ -1,4 +1,4 @@
-name: 'Android Semantic Release'
+name: 'Android Version Bump'
 author: 'oflynned'
 description: 'GitHub action for bumping Gradle versions using semantic commits'
 runs:
