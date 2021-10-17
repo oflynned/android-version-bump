@@ -73,7 +73,7 @@ props.each { prop ->
 You can define how version name & codes are generated in that file:
 
 ```groovy
-private Integer generateVersionCode() {
+private Integer getVersionCode() {
     int major = ext.majorVersion as Integer
     int minor = ext.minorVersion as Integer
     int patch = ext.patchVersion as Integer
@@ -81,7 +81,7 @@ private Integer generateVersionCode() {
     return major * 10000 + minor * 100 + patch
 }
 
-private String generateVersionName() {
+private String getVersionName() {
     if (ext.buildNumber) {
         return "${ext.majorVersion}.${ext.minorVersion}.${ext.patchVersion}.${ext.buildNumber}"
     }
@@ -95,10 +95,8 @@ You then use those two functions in your config in the same file:
 ```groovy
 android {
     defaultConfig {
-        ...
-        versionCode generateVersionCode()
-        versionName generateVersionName()
-        ...
+        versionCode getVersionCode()
+        versionName getVersionName()
     }
 }
 ```
@@ -156,25 +154,12 @@ Enable this field by passing a build number/string/SHA as an env var to the acti
 
 Pass these in the `with:` block
 
-* tag_prefix
-  * Effect: Allows you to set a prefix for a tag
-  * Example: `tag_prefix: 'v'` sets the tag to `v1.0.0`
-  * Default: ''
-
-* skip_ci
-  * Effect: Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message
-  * Example: `skip_ci: true` 
-  * Default: false
-    
-* build_number
-  * Effect: Sets the build run number in the version
-  * Example: `build_number: ${{ github.run_number }}` generates `1.0.0.5` 
-  * Default: ''
-    
-* commit_message
-  * Effect: Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message.
-  * Example: `ci: {{ version }} was just released into the wild! :tada: :partying_face:`
-  * Default: 'release: {{ version }}'
+| Tag | Effect | Example | Default value |
+|-----|--------|---------|---------------|
+|tag_prefix|Allows you to set a prefix for a tag|`tag_prefix: 'v'` sets the tag to `v1.0.0`|''|
+|skip_ci|Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message|`skip_ci: true`|false|
+|build_number|Sets the build run number in the version|`build_number: ${{ github.run_number }}` generates `1.0.0.5`|''|
+|commit_message|Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message.|`ci: {{ version }} was just released into the wild! :tada: :partying_face:`|`release: {{ version }}`|
     
 ## Q&A
 
