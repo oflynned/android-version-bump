@@ -13,11 +13,13 @@
     "prepare": "husky install",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "typecheck": "tsc --noEmit --project tsconfig.json"
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "deps:check": "npm-check",
+    "deps:update": "ncu -u"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oflynned/Android-Semantic-Release.git"
+    "url": "git+https://github.com/oflynned/android-version-bump.git"
   },
   "keywords": [
     "android",
@@ -32,26 +34,28 @@
     "actions-toolkit": "^6.0.1"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.24",
-    "@types/node": "^14.17.7",
-    "@typescript-eslint/parser": "^4.28.5",
-    "@vercel/ncc": "^0.29.0",
-    "eslint": "^7.31.0",
+    "@types/jest": "^27.0.2",
+    "@types/node": "^14.17.27",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "@vercel/ncc": "^0.31.1",
+    "eslint": "^8.0.1",
     "eslint-config-prettier": "8.3.0",
-    "eslint-plugin-github": "^4.1.5",
-    "eslint-plugin-jest": "^24.4.0",
-    "husky": "^7.0.1",
-    "jest": "^27.0.6",
-    "jest-circus": "^27.0.6",
-    "jest-mock-extended": "^1.0.18",
+    "eslint-plugin-github": "^4.3.2",
+    "eslint-plugin-jest": "^25.2.1",
+    "husky": "^7.0.2",
+    "jest": "^27.2.5",
+    "jest-circus": "^27.2.5",
+    "jest-mock-extended": "^2.0.4",
     "js-yaml": "^4.1.0",
-    "lint-staged": "^11.1.1",
-    "npm-check-updates": "^11.8.3",
-    "prettier": "^2.3.2",
-    "prettier-plugin-organize-imports": "^2.3.3",
+    "lint-staged": "^11.2.3",
+    "npm-check": "^5.9.2",
+    "npm-check-updates": "^11.8.5",
+    "prettier": "^2.4.1",
+    "prettier-plugin-organize-imports": "^2.3.4",
     "rimraf": "^3.0.2",
-    "ts-jest": "^27.0.4",
-    "typescript": "^4.3.5"
+    "ts-jest": "^27.0.7",
+    "typescript": "^4.4.4"
   },
   "lint-staged": {
     "src/**/*.ts": [
