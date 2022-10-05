@@ -30,7 +30,7 @@
   "author": "oflynned",
   "license": "MIT",
   "dependencies": {
-    "@octokit/core": "^3.5.1",
+    "@octokit/core": "^4.0.0",
     "actions-toolkit": "^6.0.1"
   },
   "devDependencies": {
