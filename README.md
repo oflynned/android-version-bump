@@ -25,7 +25,7 @@ Keep in mind that the max patch version is 99 on Android if you use the default 
 
 #### Dependencies
 
-It's recommended to use `actions/checkout@v2` when checking out the repo.
+It's recommended to use `actions/checkout@v2` or greater when checking out the repo.
 
 #### .github/workflows/master.yml
 
@@ -35,7 +35,7 @@ Make sure to bump **before** building any artifacts so that the correct versions
 ```yaml
 - name: Bump version
   id: bump_version
-  uses: oflynned/Android-Semantic-Release@master
+  uses: oflynned/android-version-bump@master
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
