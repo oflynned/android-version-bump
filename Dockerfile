@@ -1,4 +1,4 @@
-FROM node:14.17-slim
+FROM node:14.21-slim
 
 LABEL "com.github.actions.name"="Automated version bump for Android apps."
 LABEL "com.github.actions.description"="Automated version bump for Android apps."
