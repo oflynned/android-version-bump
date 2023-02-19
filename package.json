@@ -26,7 +26,7 @@
     "version",
     "release"
   ],
-  "author": "oflynned",
+  "author": "Edmond Ó Floinn <oflynned@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "@octokit/core": "4.2.0",
