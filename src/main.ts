@@ -18,6 +18,12 @@ import { Build, bumpBuild, getBuildFromVersion, Version } from './version';
 const main = async () => {
   await Toolkit.run(async (tools): Promise<void> => {
     try {
+      console.log('process.env.GITHUB_WORKSPACE', process.env.GITHUB_WORKSPACE);
+      console.log('process.env.GITHUB_HEAD_REF', process.env.GITHUB_HEAD_REF);
+
+      await runCommand('git', ['fetch']);
+      await runCommand('git', ['checkout', process.env.GITHUB_REF as any]);
+
       const tagPrefix = getTagPrefix(tools);
       const skipCi = isSkippingCi(tools);
       const buildNumber = getBuildNumber(tools);
@@ -31,7 +37,7 @@ const main = async () => {
 
         build = bumpBuild(commits ?? [], existingVersion, buildNumber);
       } else {
-        // create version 0.0.1 by default in build.gradle if not exists
+        // create version 0.0.1 by default in build.gradle if it does not exist
         const defaultBuild: Version = {
           major: 0,
           minor: 0,
