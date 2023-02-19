@@ -12,6 +12,7 @@ import {
   getVersionProperties,
   setVersionProperties,
 } from './gradle';
+import { runCommand } from './run';
 import { Build, bumpBuild, getBuildFromVersion, Version } from './version';
 
 const main = async () => {
@@ -48,7 +49,12 @@ const main = async () => {
       await createCommit(tools, message);
       await pushChanges(tools, build.name, true);
 
-      console.log(`::set-output name=new_tag::${build.name}`);
+      // fixes deprecation warning of ::set-output
+      // https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
+      await runCommand('sh', [
+        '-c',
+        `echo "new_tag=${build.name}" >> $GITHUB_OUTPUT`,
+      ]);
 
       tools.exit.success(
         `Version bumped version to ${build.name} successfully!`,
