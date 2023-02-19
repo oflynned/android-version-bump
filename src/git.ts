@@ -1,4 +1,5 @@
 import { Toolkit } from 'actions-toolkit';
+import { runCommand } from './run';
 
 export const setGitIdentity = async (toolkit: Toolkit): Promise<void> => {
   const defaultName = 'Automated Version Bump';
@@ -20,8 +21,8 @@ export const createCommit = async (
     toolkit.log.log(`Creating version commit`);
     toolkit.log.log({ commit });
 
-    await toolkit.exec('git', ['add', 'version.properties']);
-    await toolkit.exec('git', ['commit', '-m', commit]);
+    await runCommand('git', ['add', 'version.properties']);
+    await runCommand('git', ['commit', '-m', commit]);
   } catch (e) {
     toolkit.log.warn(
       `Commit failed, but this shouldn't be a problem if you are using actions/checkout@v2`,
@@ -46,11 +47,11 @@ export const pushChanges = async (
 
   if (publishTag) {
     toolkit.log.log('Publishing tag');
-    await toolkit.exec('git', ['tag', version]);
-    await toolkit.exec('git', ['push', remote, '--follow-tags']);
-    await toolkit.exec('git', ['push', remote, '--tags']);
+    await runCommand('git', ['tag', version]);
+    await runCommand('git', ['push', remote, '--follow-tags']);
+    await runCommand('git', ['push', remote, '--tags']);
   } else {
     toolkit.log.log('Not publishing tag, pushing instead');
-    await toolkit.exec('git', ['push', remote]);
+    await runCommand('git', ['push', remote]);
   }
 };
