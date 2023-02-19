@@ -8,17 +8,17 @@ branding:
   icon: chevron-up
   color: blue
 inputs:
-  tag-prefix:
+  tag_prefix:
     required: false
     description: 'Prefix to add to git tag'
-  skip-ci:
+  skip_ci:
     required: false
     description: 'Affix [skip-ci] so that a cyclical ci loop does not happen'
     default: 'true'
-  commit-message:
+  commit_message:
     required: false
     description: 'Commit message when a release is successful'
-  build-number:
+  build_number:
     required: false
     description: 'Build number to generated from ci to show as part of the version'
 outputs:
