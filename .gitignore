@@ -2,6 +2,7 @@
 node_modules/
 dist/
 .idea/
+lib/
 
 # Rest pulled from https://github.com/github/gitignore/blob/master/Node.gitignore
 # Logs
