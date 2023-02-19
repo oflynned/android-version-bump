@@ -21,8 +21,24 @@ const main = async () => {
       console.log('process.env.GITHUB_WORKSPACE', process.env.GITHUB_WORKSPACE);
       console.log('process.env.GITHUB_HEAD_REF', process.env.GITHUB_HEAD_REF);
 
+      const workspace = process.env.GITHUB_WORKSPACE;
+
+      if (workspace) {
+        await runCommand('git', [
+          'config',
+          '--global',
+          'safe.directory',
+          workspace,
+        ]);
+      }
+
+      const headRef = process.env.GITHUB_HEAD_REF;
+
+      if (headRef) {
+        await runCommand('git', ['checkout', headRef]);
+      }
+
       await runCommand('git', ['fetch']);
-      await runCommand('git', ['checkout', process.env.GITHUB_REF as any]);
 
       const tagPrefix = getTagPrefix(tools);
       const skipCi = isSkippingCi(tools);
