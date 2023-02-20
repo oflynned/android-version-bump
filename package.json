@@ -1,6 +1,6 @@
 {
   "name": "android-version-bump",
-  "version": "1.1.14",
+  "version": "1.1.15",
   "private": false,
   "description": "GitHub action for bumping Android repos using semantic releases.",
   "main": "lib/main.js",
