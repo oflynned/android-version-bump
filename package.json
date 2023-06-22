@@ -33,7 +33,7 @@
     "actions-toolkit": "6.0.1"
   },
   "devDependencies": {
-    "@types/jest": "29.4.0",
+    "@types/jest": "29.5.2",
     "@types/node": "16.18.12",
     "@typescript-eslint/eslint-plugin": "5.60.0",
     "@typescript-eslint/parser": "5.60.0",
@@ -43,8 +43,8 @@
     "eslint-plugin-github": "4.8.0",
     "eslint-plugin-jest": "27.2.1",
     "husky": "8.0.3",
-    "jest": "29.4.3",
-    "jest-circus": "29.4.3",
+    "jest": "29.5.0",
+    "jest-circus": "29.5.0",
     "jest-mock-extended": "3.0.4",
     "js-yaml": "4.1.0",
     "lint-staged": "13.2.2",
