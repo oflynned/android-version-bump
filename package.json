@@ -47,7 +47,7 @@
     "jest-circus": "29.5.0",
     "jest-mock-extended": "3.0.4",
     "js-yaml": "4.1.0",
-    "lint-staged": "13.2.2",
+    "lint-staged": "13.3.0",
     "npm-check-updates": "16.10.13",
     "prettier": "2.8.8",
     "prettier-plugin-organize-imports": "3.2.2",
