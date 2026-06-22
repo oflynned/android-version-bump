@@ -12,10 +12,12 @@
     "package": "ncc build src/main.ts --source-map",
     "prepare": "husky",
     "test": "jest",
+    "test:e2e": "npm run package && jest --config jest.e2e.config.js --runInBand",
     "test:coverage": "jest --coverage",
-    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "typecheck": "tsc --noEmit --project tsconfig.json && tsc --noEmit --project tsconfig.e2e.json",
     "deps:update": "ncu -u",
-    "audit:prod": "npm audit --omit=dev --audit-level=high"
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
+    "check": "npm run lint && npm run typecheck && npm test -- --runInBand && npm run test:e2e && npm run audit:prod"
   },
   "repository": {
     "type": "git",

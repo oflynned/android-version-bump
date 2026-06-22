@@ -4,20 +4,14 @@ import tsParser from '@typescript-eslint/parser';
 
 export default [
   {
-    ignores: [
-      'coverage/**',
-      'dist/**',
-      'e2e/**',
-      'lib/**',
-      'node_modules/**',
-    ],
+    ignores: ['coverage/**', 'dist/**', 'lib/**', 'node_modules/**'],
   },
   {
     files: ['**/*.ts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: ['./tsconfig.json', './tsconfig.e2e.json'],
         sourceType: 'module',
       },
     },
