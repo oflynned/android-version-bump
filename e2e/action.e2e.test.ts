@@ -144,7 +144,7 @@ describe('packaged action with local git repositories', () => {
     );
   });
 
-  it.skip('reads commit messages from real GitHub push payload objects (#122)', () => {
+  it('reads commit messages from real GitHub push payload objects (#122)', () => {
     const fixture = run({
       version: '1.2.3',
       commits: ['feat: add login'],
