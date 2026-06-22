@@ -1,7 +1,7 @@
-import { Toolkit } from 'actions-toolkit';
 import Fs from 'fs/promises';
 import { mock } from 'jest-mock-extended';
 import { doesVersionPropertiesExist, getVersionProperties } from './gradle';
+import { Toolkit } from './toolkit';
 
 const toolkit = mock<Toolkit>();
 const fs = mock<typeof Fs>();
@@ -36,12 +36,12 @@ describe('Gradle', () => {
   describe('getVersionProperties', () => {
     it('should return parsed version', async () => {
       toolkit.readFile.mockImplementation(async () => {
-        return `
+        return Buffer.from(`
           majorVersion=1
           minorVersion=2
           patchVersion=3
           buildNumber=
-        `;
+        `);
       });
 
       await expect(getVersionProperties(toolkit)).resolves.toEqual({
@@ -53,12 +53,12 @@ describe('Gradle', () => {
 
     it('should return 0.0.0 on error', async () => {
       toolkit.readFile.mockImplementation(async () => {
-        return `
+        return Buffer.from(`
           majorVersion=
           minorVersion=
           patchVersion=
           buildNumber=
-        `;
+        `);
       });
 
       await expect(getVersionProperties(toolkit)).resolves.toEqual({
@@ -70,12 +70,12 @@ describe('Gradle', () => {
 
     it('should parse 10 as integer and not stringified truncation', async () => {
       toolkit.readFile.mockImplementation(async () => {
-        return `
+        return Buffer.from(`
           majorVersion=1
           minorVersion=0
           patchVersion=10
           buildNumber=
-        `;
+        `);
       });
 
       await expect(getVersionProperties(toolkit)).resolves.toEqual({
@@ -86,7 +86,7 @@ describe('Gradle', () => {
     });
 
     it('should return 0.0.0 on empty file', async () => {
-      toolkit.readFile.mockImplementation(async () => '');
+      toolkit.readFile.mockImplementation(async () => Buffer.from(''));
 
       await expect(getVersionProperties(toolkit)).resolves.toEqual({
         major: 0,
