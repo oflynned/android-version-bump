@@ -29,7 +29,7 @@ It's recommended to use `actions/checkout@v2` or greater when checking out the r
 
 #### .github/workflows/master.yml
 
-Add the following to your yaml workflow declaration. 
+Add the following to your yaml workflow declaration.
 Make sure to bump **before** building any artifacts so that the correct versions are applied.
 
 ```yaml
@@ -55,6 +55,7 @@ jobs:
 ### Android Studio
 
 #### version.properties
+
 The CI will create a `version.properties` by default, but you can also create this yourself to set the first version **to bump from**.
 Remember, creating a file with 0.0.1 will bump it to 0.0.2 on first run.
 Not creating any `version.properties` will make the CI action handle this edge case itself and create the first version 0.0.1 without bumping.
@@ -64,7 +65,7 @@ majorVersion=1
 minorVersion=0
 patchVersion=0
 buildNumber=
-```  
+```
 
 The build number can remain unset if you are using the default version name generator below.
 
@@ -72,8 +73,9 @@ The build number can remain unset if you are using the default version name gene
 
 `build.gradle` will not use these values unless you add some logic to it.
 
-The version properties file must first be loaded into the Gradle context. 
+The version properties file must first be loaded into the Gradle context.
 Add this to the top of `build.gradle`
+
 ```groovy
 Properties props = new Properties()
 props.load(new FileInputStream("$project.rootDir/version.properties"))
@@ -118,14 +120,16 @@ android {
 ### Major
 
 Bumps on the following intents:
+
 ```text
 major: drop support for api v21
 ```
 
 Also triggered if the commit body contains `BREAKING CHANGE` or if the intent contains a `!`.
+
 ```text
 refactor!: drop support for api v21
-refactor: BREAKING CHANGE drop support for api v21  
+refactor: BREAKING CHANGE drop support for api v21
 ```
 
 If any commit like this is in the list of commits within the event, then the **major** version will get bumped (`1.0.0 -> 2.0.0`)
@@ -133,6 +137,7 @@ If any commit like this is in the list of commits within the event, then the **m
 ### Minor
 
 Bumps on the following intents:
+
 ```text
 feat: add oauth login with google
 minor: allow user to delete account
@@ -167,17 +172,17 @@ Enable this field by passing a build number/string/SHA as an env var to the acti
 Pass these in the `with:` block
 
 | Tag            | Effect                                                                                                                                                                         | Example                                                                     | Default value            |
-|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|--------------------------|
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- | ------------------------ |
 | tag_prefix     | Allows you to set a prefix for a tag                                                                                                                                           | `tag_prefix: 'v'` sets the tag to `v1.0.0`                                  | ''                       |
 | skip_ci        | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: true`                                                             | false                    |
 | build_number   | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                | ''                       |
 | commit_message | Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message. | `ci: {{ version }} was just released into the wild! :tada: :partying_face:` | `release: {{ version }}` |
-    
+
 ## Q&A
 
-### I need to also create a release, not just a tag 
+### I need to also create a release, not just a tag
 
-The action also outputs a tag that you can use in later stages of the workflow like so. 
+The action also outputs a tag that you can use in later stages of the workflow like so.
 
 ```yaml
 - name: Create release
