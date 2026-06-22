@@ -2,9 +2,10 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as github from '@actions/github';
 import fs from 'fs/promises';
+import type { Commit } from './version';
 
 type Payload = {
-  commits?: string[];
+  commits?: Commit[];
 };
 
 const inputNames = [

@@ -11,6 +11,8 @@ export type Build = {
   code: number;
 };
 
+export type Commit = string | { message?: unknown };
+
 const getCommitIntent = (message: string): string => {
   const [commitIntent] = message.toLowerCase().split(':');
 
@@ -87,11 +89,16 @@ export const getBuildFromVersion = (version: Version): Build => {
 };
 
 export const bumpBuild = (
-  commits: string[],
+  commits: Commit[],
   currentVersion: Version,
   buildNumber?: string | number,
 ): Build => {
-  const semanticCommits = commits.filter(isSemanticCommit);
+  const semanticCommits = commits
+    .map((commit) => (typeof commit === 'string' ? commit : commit.message))
+    .filter(
+      (message): message is string =>
+        typeof message === 'string' && isSemanticCommit(message),
+    );
   const isMajor = semanticCommits.some(isMajorBump);
 
   if (isMajor) {
