@@ -1,4 +1,4 @@
-import { Toolkit } from 'actions-toolkit';
+import { Toolkit } from './toolkit';
 import { Build } from './version';
 
 export type Key =

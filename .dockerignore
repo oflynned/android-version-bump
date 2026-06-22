@@ -1,0 +1,7 @@
+.git
+.idea
+coverage
+dist
+lib
+node_modules
+*.log
