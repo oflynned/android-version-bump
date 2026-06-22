@@ -1,6 +1,6 @@
-import { Toolkit } from 'actions-toolkit';
 import { mock } from 'jest-mock-extended';
 import { getCommitMessage } from './env';
+import { Toolkit } from './toolkit';
 import { Build } from './version';
 
 const toolkit = mock<Toolkit>();

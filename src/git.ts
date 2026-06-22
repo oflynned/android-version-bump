@@ -1,5 +1,5 @@
-import { Toolkit } from 'actions-toolkit';
 import { runCommand } from './run';
+import { Toolkit } from './toolkit';
 
 export const setGitIdentity = async (toolkit: Toolkit): Promise<void> => {
   const defaultName = 'Automated Version Bump';
@@ -23,7 +23,7 @@ export const createCommit = async (
 
     await runCommand('git', ['add', 'version.properties']);
     await runCommand('git', ['commit', '-m', commit]);
-  } catch (e) {
+  } catch {
     toolkit.log.warn(
       `Commit failed, but this shouldn't be a problem if you are using actions/checkout@v2`,
     );

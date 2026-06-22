@@ -8,8 +8,14 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
       - name: Install dependencies
         run: npm ci
 
@@ -20,16 +26,16 @@ jobs:
         run: npm run typecheck
 
       - name: Run tests
-        run: npm run test:coverage
+        run: npm run test:coverage && npm run test:e2e
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          yml: codecov.yml
-          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Audit production dependencies
+        run: npm run audit:prod
 
       - name: Ensure build & shrinkwrap work
         run: npm run build && npm run package
+
+      - name: Build Docker action
+        run: docker build .
 
       - name: Bump version
         id: bump_version

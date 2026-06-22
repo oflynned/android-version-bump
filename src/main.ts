@@ -1,4 +1,3 @@
-import { Toolkit } from 'actions-toolkit';
 import fs from 'fs/promises';
 import {
   getBuildNumber,
@@ -13,6 +12,7 @@ import {
   setVersionProperties,
 } from './gradle';
 import { runCommand } from './run';
+import { Toolkit } from './toolkit';
 import { Build, bumpBuild, getBuildFromVersion, Version } from './version';
 
 const main = async () => {

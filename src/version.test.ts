@@ -180,6 +180,31 @@ describe('version', () => {
       });
     });
 
+    it('should read commit messages from GitHub push payload objects', () => {
+      const commits = [
+        { message: 'fix: did something' },
+        { message: 'feat: added user login' },
+      ];
+      const build = bumpBuild(commits, currentVersion);
+
+      expect(build).toEqual({
+        code: 10300,
+        name: '1.3.0',
+        version: {
+          major: 1,
+          minor: 3,
+          patch: 0,
+        },
+      });
+    });
+
+    it('should ignore malformed commit payload entries', () => {
+      const commits = [{ message: undefined }, { message: 42 }];
+      const build = bumpBuild(commits, currentVersion);
+
+      expect(build.name).toBe('1.2.4');
+    });
+
     it('should bump patch, and keep major & minor the same', () => {
       const commits: string[] = ['chore: did something'];
       const build = bumpBuild(commits, currentVersion);

@@ -1,19 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "outDir": "./lib",
     "rootDir": "./src",
     "strict": true,
     "noImplicitAny": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node", "jest"]
   },
-  "exclude": [
-    "coverage",
-    ".idea",
-    "dist",
-    "lib",
-    "node_modules",
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["coverage", ".idea", "dist", "lib", "node_modules"]
 }

@@ -1,5 +1,5 @@
-import { Toolkit } from 'actions-toolkit';
 import Fs from 'fs/promises';
+import { Toolkit } from './toolkit';
 import { Version } from './version';
 
 export const doesVersionPropertiesExist = async (
@@ -9,7 +9,7 @@ export const doesVersionPropertiesExist = async (
     const file = await fs.readFile('version.properties');
 
     return file?.toString().length > 0;
-  } catch (e) {
+  } catch {
     return false;
   }
 };

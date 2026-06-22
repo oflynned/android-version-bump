@@ -1,6 +1,7 @@
 name: 'CI'
 
 on:
+  pull_request:
   push:
     branches-ignore:
       - master
@@ -10,22 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - name: Use Node.js 24
+        uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: ${{ runner.OS }}-build-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.OS }}-build-${{ env.cache-name }}-
-            ${{ runner.OS }}-build-
-            ${{ runner.OS }}-
+          node-version-file: .nvmrc
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
@@ -36,5 +28,14 @@ jobs:
       - name: Check types
         run: npm run typecheck
 
-      - name: Run unit tests
-        run: npm test
+      - name: Run unit and end-to-end tests
+        run: npm test && npm run test:e2e
+
+      - name: Audit production dependencies
+        run: npm run audit:prod
+
+      - name: Build and package action
+        run: npm run build && npm run package
+
+      - name: Build Docker action
+        run: docker build .
