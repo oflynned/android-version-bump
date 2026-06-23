@@ -10,9 +10,11 @@ const realGit = execFileSync('command', ['-v', 'git'], {
 }).trim();
 
 type EventCommit = string | { id: string; message: string };
+type VersionStorage = 'version-properties' | 'gradle-properties';
 
 type FixtureOptions = {
   version?: string;
+  versionStorage?: VersionStorage;
   commits?: string[];
   eventCommits?: EventCommit[];
   inputs?: Record<string, string>;
@@ -35,17 +37,25 @@ export type ActionFixture = {
 const git = (cwd: string, args: string[]): string =>
   execFileSync(realGit, args, { cwd, encoding: 'utf8' }).trim();
 
-const writeVersion = (workspace: string, version: string): void => {
+const writeVersion = (
+  workspace: string,
+  version: string,
+  storage: VersionStorage = 'version-properties',
+): void => {
   const [major, minor, patch] = version.split('.');
-  fs.writeFileSync(
-    path.join(workspace, 'version.properties'),
-    [
-      `majorVersion=${major}`,
-      `minorVersion=${minor}`,
-      `patchVersion=${patch}`,
-      'buildNumber=',
-    ].join('\n'),
-  );
+  const fileName =
+    storage === 'gradle-properties'
+      ? 'gradle.properties'
+      : 'version.properties';
+  const contents = [
+    ...(storage === 'gradle-properties' ? ['org.gradle.jvmargs=-Xmx2g'] : []),
+    `majorVersion=${major}`,
+    `minorVersion=${minor}`,
+    `patchVersion=${patch}`,
+    'buildNumber=',
+  ].join('\n');
+
+  fs.writeFileSync(path.join(workspace, fileName), contents);
 };
 
 const createGitShim = (root: string, remote: string): string => {
@@ -94,7 +104,7 @@ export const runActionFixture = (
   git(workspace, ['config', 'user.email', 'fixture@example.com']);
   fs.writeFileSync(path.join(workspace, 'README.md'), 'fixture\n');
   if (options.version) {
-    writeVersion(workspace, options.version);
+    writeVersion(workspace, options.version, options.versionStorage);
   }
   git(workspace, ['add', '.']);
   git(workspace, ['commit', '-m', 'chore: initial fixture']);

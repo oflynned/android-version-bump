@@ -71,6 +71,37 @@ buildNumber=
 The build number can remain unset if you are using the default version name generators below.
 The generated `version_code` output uses the deterministic default formula `major * 10000 + minor * 100 + patch`.
 
+#### Version storage
+
+The default `version_storage` backend is `version-properties`, which reads and writes `version.properties` in the repository root.
+Projects that already keep shared Gradle settings in `gradle.properties` can use the `gradle-properties` backend instead.
+
+Both supported backends use the same keys:
+
+```properties
+majorVersion=1
+minorVersion=0
+patchVersion=0
+buildNumber=
+```
+
+| Backend            | File                 | Behavior                                                          |
+| ------------------ | -------------------- | ----------------------------------------------------------------- |
+| version-properties | `version.properties` | Compatibility default. The action writes the version keys file.   |
+| gradle-properties  | `gradle.properties`  | The action updates the version keys and preserves unrelated keys. |
+
+To use `gradle.properties`:
+
+```yaml
+- name: Bump version
+  id: bump_version
+  uses: oflynned/android-version-bump@master
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    version_storage: gradle-properties
+```
+
 #### build.gradle.kts / Kotlin DSL
 
 For Kotlin DSL projects, pass the generated values from GitHub Actions into Gradle as project properties.
@@ -244,17 +275,18 @@ Enable this field by passing a build number/string/SHA as an input to the action
 
 Pass these in the `with:` block
 
-| Tag            | Effect                                                                                                                                                                         | Example                                                                            | Default value            |
-|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|--------------------------|
-| tag_prefix     | Prefix used in the generated release commit message. The git tag, `git_tag`, and `new_tag` outputs remain the unprefixed version.                                              | `tag_prefix: 'release-'` makes the default commit message `release: release-1.0.0` | `v`                      |
-| skip_ci        | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                                   | true                     |
-| build_number   | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                       | ''                       |
-| commit_message | Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message. | `ci: {{ version }} was just released into the wild! :tada: :partying_face:`        | `release: {{ version }}` |
+| Tag             | Effect                                                                                                                                                                         | Example                                                                            | Default value            |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------ |
+| version_storage | Selects where version metadata is read from and written to. Supported values are `version-properties` and `gradle-properties`.                                                 | `version_storage: gradle-properties` updates `gradle.properties`                   | `version-properties`     |
+| tag_prefix      | Prefix used in the generated release commit message. The git tag, `git_tag`, and `new_tag` outputs remain the unprefixed version.                                              | `tag_prefix: 'release-'` makes the default commit message `release: release-1.0.0` | `v`                      |
+| skip_ci         | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                                   | true                     |
+| build_number    | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                       | ''                       |
+| commit_message  | Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message. | `ci: {{ version }} was just released into the wild! :tada: :partying_face:`        | `release: {{ version }}` |
 
 ## Outputs
 
 | Name         | Description                        | Example   |
-|--------------|------------------------------------|-----------|
+| ------------ | ---------------------------------- | --------- |
 | git_tag      | The newly created git tag          | `1.0.0`   |
 | version_name | The generated Android version name | `1.0.0.5` |
 | version_code | The generated Android version code | `10000`   |

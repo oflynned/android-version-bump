@@ -3,11 +3,13 @@ import {
   getBuildNumber,
   getCommitMessage,
   getTagPrefix,
+  getVersionStorageBackend,
   isSkippingCi,
 } from './env';
 import { createCommit, pushChanges, setGitIdentity } from './git';
 import {
   doesVersionPropertiesExist,
+  getVersionStoragePath,
   getVersionProperties,
   setVersionProperties,
 } from './gradle';
@@ -43,12 +45,19 @@ const main = async () => {
       const tagPrefix = getTagPrefix(tools);
       const skipCi = isSkippingCi(tools);
       const buildNumber = getBuildNumber(tools);
-      const versionFileExists = await doesVersionPropertiesExist(fs);
+      const versionStorageBackend = getVersionStorageBackend(tools);
+      const versionFileExists = await doesVersionPropertiesExist(
+        fs,
+        versionStorageBackend,
+      );
 
       let build: Build;
 
       if (versionFileExists) {
-        const existingVersion = await getVersionProperties(tools);
+        const existingVersion = await getVersionProperties(
+          tools,
+          versionStorageBackend,
+        );
         const { commits } = tools.context.payload;
 
         build = bumpBuild(commits ?? [], existingVersion, buildNumber);
@@ -66,9 +75,16 @@ const main = async () => {
 
       const message = getCommitMessage(tools, build, tagPrefix, skipCi);
 
-      await setVersionProperties(fs, tools, build.version);
+      await setVersionProperties(
+        fs,
+        tools,
+        build.version,
+        versionStorageBackend,
+      );
       await setGitIdentity(tools);
-      await createCommit(tools, message);
+      await createCommit(tools, message, [
+        getVersionStoragePath(versionStorageBackend),
+      ]);
       await pushChanges(tools, build.name, true);
       tools.setOutput('new_tag', build.name);
       tools.setOutput('git_tag', build.name);

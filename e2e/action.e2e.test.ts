@@ -94,6 +94,41 @@ describe('packaged action with local git repositories', () => {
     },
   );
 
+  it('reads and writes gradle.properties when configured', () => {
+    const fixture = run({
+      version: '1.2.3',
+      versionStorage: 'gradle-properties',
+      commits: ['fix: repair launch'],
+      inputs: {
+        version_storage: 'gradle-properties',
+      },
+    });
+
+    expect(fixture.result.status).toBe(0);
+    expect(gitInRemote(fixture, 'show', 'main:gradle.properties')).toBe(
+      [
+        'org.gradle.jvmargs=-Xmx2g',
+        'majorVersion=1',
+        'minorVersion=2',
+        'patchVersion=4',
+        'buildNumber=',
+      ].join('\n'),
+    );
+    expect(
+      gitInRemote(
+        fixture,
+        'diff-tree',
+        '--no-commit-id',
+        '--name-only',
+        '-r',
+        'main',
+      ),
+    ).toBe('gradle.properties');
+    expect(gitInRemote(fixture, 'rev-parse', 'refs/tags/1.2.4')).toBe(
+      gitInRemote(fixture, 'rev-parse', 'refs/heads/main'),
+    );
+  });
+
   it('applies inputs, identity, and head-ref checkout', () => {
     const fixture = run({
       version: '1.2.3',

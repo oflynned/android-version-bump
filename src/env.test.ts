@@ -1,5 +1,5 @@
 import { mock } from 'jest-mock-extended';
-import { getCommitMessage } from './env';
+import { getCommitMessage, getVersionStorageBackend } from './env';
 import { Toolkit } from './toolkit';
 import { Build } from './version';
 
@@ -17,6 +17,32 @@ const build: Build = {
 describe('Env', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+  });
+
+  describe('getVersionStorageBackend', () => {
+    it('should default to version properties', () => {
+      toolkit.inputs['version_storage'] = undefined;
+
+      const result = getVersionStorageBackend(toolkit);
+
+      expect(result).toEqual('version-properties');
+    });
+
+    it('should return configured version storage backend', () => {
+      toolkit.inputs['version_storage'] = 'gradle-properties';
+
+      const result = getVersionStorageBackend(toolkit);
+
+      expect(result).toEqual('gradle-properties');
+    });
+
+    it('should reject unknown version storage backends', () => {
+      toolkit.inputs['version_storage'] = 'spreadsheet';
+
+      expect(() => getVersionStorageBackend(toolkit)).toThrow(
+        'Invalid version storage backend "spreadsheet"',
+      );
+    });
   });
 
   describe('getCommitMessage', () => {
