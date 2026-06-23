@@ -50,7 +50,7 @@ Use `fetch-depth: 0` with `actions/checkout` so the runner has enough history an
 If no matching previous tag exists, the action reads all reachable commits.
 
 | Range        | Behavior                                                                     |
-|--------------|------------------------------------------------------------------------------|
+| ------------ | ---------------------------------------------------------------------------- |
 | previous-tag | Reads commits from the previous tag matching `commit_tag_pattern` to `HEAD`. |
 | base-ref     | Reads commits from `commit_base_ref` to `HEAD`.                              |
 
@@ -153,7 +153,7 @@ buildNumber=
 ```
 
 | Backend            | File                 | Behavior                                                          |
-|--------------------|----------------------|-------------------------------------------------------------------|
+| ------------------ | -------------------- | ----------------------------------------------------------------- |
 | version-properties | `version.properties` | Compatibility default. The action writes the version keys file.   |
 | gradle-properties  | `gradle.properties`  | The action updates the version keys and preserves unrelated keys. |
 
@@ -343,7 +343,7 @@ Enable this field by passing a build number/string/SHA as an input to the action
 Pass these in the `with:` block
 
 | Tag                           | Effect                                                                                                                                                      | Example                                                                                             | Default value            |
-|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|--------------------------|
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------ |
 | app_path                      | App or module path used to scope version storage and optional path filtering.                                                                               | `app_path: apps/mobile` stores versions in `apps/mobile/version.properties`                         | ''                       |
 | commit_range                  | Selects where version bump commit messages come from. Supported values are `previous-tag` and `base-ref`.                                                   | `commit_range: base-ref` reads from `commit_base_ref` to `HEAD`                                     | `previous-tag`           |
 | commit_base_ref               | Base ref used when `commit_range` is `base-ref`. If omitted, pull request workflows use `origin/${{ github.base_ref }}` when available.                     | `commit_base_ref: origin/main`                                                                      | ''                       |
@@ -359,7 +359,7 @@ Pass these in the `with:` block
 ## Outputs
 
 | Name           | Description                                           | Example    |
-|----------------|-------------------------------------------------------|------------|
+| -------------- | ----------------------------------------------------- | ---------- |
 | git_tag        | The newly created git tag                             | `1.0.0`    |
 | version_name   | The generated Android version name                    | `1.0.0.5`  |
 | version_code   | The generated Android version code                    | `10000`    |
