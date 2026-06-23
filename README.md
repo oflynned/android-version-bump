@@ -19,6 +19,7 @@ The action runs as a bundled Node 24 JavaScript action, so workflow consumers do
 
 Add the following to your yaml workflow declaration.
 Make sure to bump **before** building any artifacts so that the correct versions are applied.
+For Kotlin DSL builds, pass the generated outputs into Gradle as project properties.
 
 ```yaml
 - uses: actions/checkout@v6
@@ -242,7 +243,7 @@ Pass these in the `with:` block
 
 | Tag            | Effect                                                                                                                                                                         | Example                                                                     | Default value            |
 |----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|--------------------------|
-| tag_prefix     | Allows you to set a prefix for a tag                                                                                                                                           | `tag_prefix: 'release-'` sets the tag to `release-1.0.0`                    | `v`                      |
+| tag_prefix     | Prefix used in the generated release commit message. The git tag and `new_tag` output remain the unprefixed version.                                                           | `tag_prefix: 'release-'` makes the default commit message `release: release-1.0.0` | `v`                      |
 | skip_ci        | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                            | true                     |
 | build_number   | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                | ''                       |
 | commit_message | Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message. | `ci: {{ version }} was just released into the wild! :tada: :partying_face:` | `release: {{ version }}` |
@@ -251,7 +252,7 @@ Pass these in the `with:` block
 
 | Name         | Description                        | Example   |
 |--------------|------------------------------------|-----------|
-| new_tag      | The newly created tag              | `1.0.0`   |
+| new_tag      | The newly created unprefixed tag   | `1.0.0`   |
 | version_name | The generated Android version name | `1.0.0.5` |
 | version_code | The generated Android version code | `10000`   |
 
