@@ -24,3 +24,7 @@ inputs:
 outputs:
   new_tag:
     description: 'The newly created tag'
+  version_name:
+    description: 'The generated Android version name'
+  version_code:
+    description: 'The generated Android version code'

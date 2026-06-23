@@ -19,6 +19,7 @@ The action runs as a bundled Node 24 JavaScript action, so workflow consumers do
 
 Add the following to your yaml workflow declaration.
 Make sure to bump **before** building any artifacts so that the correct versions are applied.
+For Kotlin DSL builds, pass the generated outputs into Gradle as project properties.
 
 ```yaml
 - uses: actions/checkout@v6
@@ -28,6 +29,12 @@ Make sure to bump **before** building any artifacts so that the correct versions
   uses: oflynned/android-version-bump@master
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+- name: Build release
+  run: >
+    ./gradlew :app:assembleRelease
+    -PversionName=${{ steps.bump_version.outputs.version_name }}
+    -PversionCode=${{ steps.bump_version.outputs.version_code }}
 ```
 
 Pin to a version tag instead of `master` if you want fully repeatable workflow runs.
@@ -59,9 +66,80 @@ patchVersion=0
 buildNumber=
 ```
 
-The build number can remain unset if you are using the default version name generator below.
+The build number can remain unset if you are using the default version name generators below.
 
-#### build.gradle
+#### build.gradle.kts / Kotlin DSL
+
+For Kotlin DSL projects, pass the generated values from GitHub Actions into Gradle as project properties.
+This is the recommended CI setup because it avoids duplicating version logic in `build.gradle.kts`.
+
+```yaml
+- name: Bump version
+  id: bump_version
+  uses: oflynned/android-version-bump@master
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+- name: Build release
+  run: >
+    ./gradlew :app:assembleRelease
+    -PversionName=${{ steps.bump_version.outputs.version_name }}
+    -PversionCode=${{ steps.bump_version.outputs.version_code }}
+```
+
+Then read those properties from your module-level `build.gradle.kts`:
+
+```kotlin
+android {
+    defaultConfig {
+        versionName = providers.gradleProperty("versionName").get()
+        versionCode = providers.gradleProperty("versionCode").get().toInt()
+    }
+}
+```
+
+If you also want local Android Studio builds to work before CI has passed properties into Gradle, load the root `version.properties` file as a fallback in the same module-level `build.gradle.kts`:
+
+```kotlin
+import java.util.Properties
+
+val versionProperties = Properties().apply {
+    val versionFile = rootProject.file("version.properties")
+
+    if (versionFile.exists()) {
+        versionFile.inputStream().use(::load)
+    }
+}
+
+fun versionPart(name: String): String = versionProperties.getProperty(name, "0")
+
+fun getVersionCode(): Int {
+    val major = versionPart("majorVersion").toInt()
+    val minor = versionPart("minorVersion").toInt()
+    val patch = versionPart("patchVersion").toInt()
+
+    return major * 10000 + minor * 100 + patch
+}
+
+fun getVersionName(): String {
+    val major = versionPart("majorVersion")
+    val minor = versionPart("minorVersion")
+    val patch = versionPart("patchVersion")
+    val build = versionProperties.getProperty("buildNumber", "")
+    val versionName = "$major.$minor.$patch"
+
+    return if (build.isNotBlank()) "$versionName.$build" else versionName
+}
+
+android {
+    defaultConfig {
+        versionName = providers.gradleProperty("versionName").orNull ?: getVersionName()
+        versionCode = providers.gradleProperty("versionCode").orNull?.toInt() ?: getVersionCode()
+    }
+}
+```
+
+#### build.gradle / Groovy
 
 `build.gradle` will not use these values unless you add some logic to it.
 
@@ -165,16 +243,18 @@ Pass these in the `with:` block
 
 | Tag            | Effect                                                                                                                                                                         | Example                                                                     | Default value            |
 |----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|--------------------------|
-| tag_prefix     | Allows you to set a prefix for a tag                                                                                                                                           | `tag_prefix: 'release-'` sets the tag to `release-1.0.0`                    | `v`                      |
+| tag_prefix     | Prefix used in the generated release commit message. The git tag and `new_tag` output remain the unprefixed version.                                                           | `tag_prefix: 'release-'` makes the default commit message `release: release-1.0.0` | `v`                      |
 | skip_ci        | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                            | true                     |
 | build_number   | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                | ''                       |
 | commit_message | Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message. | `ci: {{ version }} was just released into the wild! :tada: :partying_face:` | `release: {{ version }}` |
 
 ## Outputs
 
-| Name    | Description           | Example  |
-|---------|-----------------------|----------|
-| new_tag | The newly created tag | `v1.0.0` |
+| Name         | Description                        | Example   |
+|--------------|------------------------------------|-----------|
+| new_tag      | The newly created unprefixed tag   | `1.0.0`   |
+| version_name | The generated Android version name | `1.0.0.5` |
+| version_code | The generated Android version code | `10000`   |
 
 ## Q&A
 

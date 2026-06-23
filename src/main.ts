@@ -71,6 +71,8 @@ const main = async () => {
       await createCommit(tools, message);
       await pushChanges(tools, build.name, true);
       tools.setOutput('new_tag', build.name);
+      tools.setOutput('version_name', build.name);
+      tools.setOutput('version_code', build.code.toString());
 
       tools.exit.success(
         `Version bumped version to ${build.name} successfully!`,

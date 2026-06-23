@@ -192,14 +192,45 @@ export const gitInRemote = (
 ): string => git(fixture.root, ['--git-dir', fixture.remote, ...args]);
 
 export const readOutput = (fixture: ActionFixture): string => {
-  const contents = fs.readFileSync(fixture.outputFile, 'utf8').trim();
-  const [header, ...lines] = contents.split('\n');
-  const [name, delimiter] = header.split('<<');
+  const outputs = readOutputs(fixture);
+  const [name, value] = Object.entries(outputs)[0] ?? [];
 
-  if (!delimiter) {
-    return contents;
+  return name ? `${name}=${value}` : '';
+};
+
+export const readOutputs = (fixture: ActionFixture): Record<string, string> => {
+  const contents = fs.readFileSync(fixture.outputFile, 'utf8').trim();
+
+  if (!contents) {
+    return {};
   }
 
-  const delimiterIndex = lines.indexOf(delimiter);
-  return `${name}=${lines.slice(0, delimiterIndex).join('\n')}`;
+  const outputs: Record<string, string> = {};
+  const lines = contents.split('\n');
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const [name, delimiter] = line.split('<<');
+
+    if (delimiter) {
+      const valueLines: string[] = [];
+      index += 1;
+
+      while (index < lines.length && lines[index] !== delimiter) {
+        valueLines.push(lines[index]);
+        index += 1;
+      }
+
+      outputs[name] = valueLines.join('\n');
+      continue;
+    }
+
+    const separatorIndex = line.indexOf('=');
+
+    if (separatorIndex > -1) {
+      outputs[line.slice(0, separatorIndex)] = line.slice(separatorIndex + 1);
+    }
+  }
+
+  return outputs;
 };
