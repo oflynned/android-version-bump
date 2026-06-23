@@ -276,7 +276,7 @@ Enable this field by passing a build number/string/SHA as an input to the action
 Pass these in the `with:` block
 
 | Tag             | Effect                                                                                                                                                                         | Example                                                                            | Default value            |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------ |
+|-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|--------------------------|
 | version_storage | Selects where version metadata is read from and written to. Supported values are `version-properties` and `gradle-properties`.                                                 | `version_storage: gradle-properties` updates `gradle.properties`                   | `version-properties`     |
 | tag_prefix      | Prefix used in the generated release commit message. The git tag, `git_tag`, and `new_tag` outputs remain the unprefixed version.                                              | `tag_prefix: 'release-'` makes the default commit message `release: release-1.0.0` | `v`                      |
 | skip_ci         | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                                   | true                     |
@@ -286,7 +286,7 @@ Pass these in the `with:` block
 ## Outputs
 
 | Name         | Description                        | Example   |
-| ------------ | ---------------------------------- | --------- |
+|--------------|------------------------------------|-----------|
 | git_tag      | The newly created git tag          | `1.0.0`   |
 | version_name | The generated Android version name | `1.0.0.5` |
 | version_code | The generated Android version code | `10000`   |
