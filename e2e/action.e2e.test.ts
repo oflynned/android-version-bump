@@ -135,6 +135,8 @@ describe('packaged action with local git repositories', () => {
       commits: ['feat: add login'],
       headRef: 'feature/login',
       inputs: {
+        commit_range: 'base-ref',
+        commit_base_ref: 'origin/main',
         tag_prefix: 'release-',
         skip_ci: 'false',
         build_number: '42',
@@ -168,6 +170,44 @@ describe('packaged action with local git repositories', () => {
     );
   });
 
+  it('uses squash-style git history instead of payload commit details', () => {
+    const fixture = run({
+      version: '1.2.3',
+      commits: ['feat: squash login branch (#42)'],
+      eventCommits: [
+        { id: 'fixture-1', message: 'fix: payload detail one' },
+        { id: 'fixture-2', message: 'fix: payload detail two' },
+      ],
+    });
+
+    expect(fixture.result.status).toBe(0);
+    expect(gitInRemote(fixture, 'show', 'main:version.properties')).toContain(
+      'minorVersion=3',
+    );
+  });
+
+  it('uses the previous matching tag to HEAD range', () => {
+    const fixture = run({
+      version: '1.2.3',
+      previousTag: '1.2.3',
+      preTagCommits: ['feat: already released login'],
+      commits: ['fix: repair launch'],
+    });
+
+    expect(fixture.result.status).toBe(0);
+    expect(gitInRemote(fixture, 'show', 'main:version.properties')).toBe(
+      [
+        'majorVersion=1',
+        'minorVersion=2',
+        'patchVersion=4',
+        'buildNumber=',
+      ].join('\n'),
+    );
+    expect(gitInRemote(fixture, 'rev-parse', 'refs/tags/1.2.4')).toBe(
+      gitInRemote(fixture, 'rev-parse', 'refs/heads/main'),
+    );
+  });
+
   it('reports a rejected push and leaves the remote unchanged', () => {
     const fixture = run({
       version: '1.2.3',
@@ -192,10 +232,13 @@ describe('packaged action with local git repositories', () => {
     );
   });
 
-  it('reads commit messages from real GitHub push payload objects (#122)', () => {
+  it('can use commit messages from real GitHub push payload objects (#122)', () => {
     const fixture = run({
       version: '1.2.3',
-      commits: ['feat: add login'],
+      commits: ['fix: repair launch'],
+      inputs: {
+        commit_range: 'payload',
+      },
       eventCommits: [{ id: 'fixture', message: 'feat: add login' }],
     });
 

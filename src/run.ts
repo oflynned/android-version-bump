@@ -1,15 +1,13 @@
 import { spawn } from 'child_process';
 import { EOL } from 'os';
 
-export const runCommand = async (
-  command: string,
-  args: string[],
-): Promise<void> => {
+const runProcess = async (command: string, args: string[]): Promise<string> => {
   const workspace = process.env.GITHUB_WORKSPACE;
 
   return new Promise((resolve, reject) => {
     const childProcess = spawn(command, args, { cwd: workspace });
     const errorMessages: string[] = [];
+    const outputMessages: string[] = [];
     let isDone = false;
 
     childProcess.on('error', (error) => {
@@ -20,11 +18,12 @@ export const runCommand = async (
     });
 
     childProcess.stderr.on('data', (chunk) => errorMessages.push(chunk));
+    childProcess.stdout.on('data', (chunk) => outputMessages.push(chunk));
 
     childProcess.on('exit', (code) => {
       if (!isDone) {
         if (code === 0) {
-          resolve();
+          resolve(outputMessages.join(''));
         } else {
           reject(
             `${errorMessages.join(
@@ -35,4 +34,18 @@ export const runCommand = async (
       }
     });
   });
+};
+
+export const runCommand = async (
+  command: string,
+  args: string[],
+): Promise<void> => {
+  await runProcess(command, args);
+};
+
+export const runCommandOutput = async (
+  command: string,
+  args: string[],
+): Promise<string> => {
+  return runProcess(command, args);
 };

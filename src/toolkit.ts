@@ -9,6 +9,9 @@ type Payload = {
 };
 
 const inputNames = [
+  'commit_range',
+  'commit_base_ref',
+  'commit_tag_pattern',
   'gradle_location',
   'version_storage',
   'tag_prefix',

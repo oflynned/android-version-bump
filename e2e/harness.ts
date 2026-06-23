@@ -15,6 +15,8 @@ type VersionStorage = 'version-properties' | 'gradle-properties';
 type FixtureOptions = {
   version?: string;
   versionStorage?: VersionStorage;
+  previousTag?: string;
+  preTagCommits?: string[];
   commits?: string[];
   eventCommits?: EventCommit[];
   inputs?: Record<string, string>;
@@ -108,8 +110,25 @@ export const runActionFixture = (
   }
   git(workspace, ['add', '.']);
   git(workspace, ['commit', '-m', 'chore: initial fixture']);
+
+  for (const [index, message] of (options.preTagCommits ?? []).entries()) {
+    fs.appendFileSync(
+      path.join(workspace, 'README.md'),
+      `pre-tag-${index}:${message}\n`,
+    );
+    git(workspace, ['add', 'README.md']);
+    git(workspace, ['commit', '-m', message]);
+  }
+
+  if (options.previousTag) {
+    git(workspace, ['tag', options.previousTag]);
+  }
+
   git(workspace, ['remote', 'add', 'origin', remote]);
   git(workspace, ['push', '-u', 'origin', 'main']);
+  if (options.previousTag) {
+    git(workspace, ['push', 'origin', options.previousTag]);
+  }
 
   if (branch !== 'main') {
     git(workspace, ['checkout', '-b', branch]);
