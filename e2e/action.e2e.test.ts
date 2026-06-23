@@ -157,13 +157,12 @@ describe('packaged action with local git repositories', () => {
     );
   });
 
-  it('keeps action output metadata mismatch documented for a later fix', () => {
+  it('declares the output written by the packaged action', () => {
     const action = fs.readFileSync(
       path.resolve(__dirname, '../action.yml'),
       'utf8',
     );
 
-    expect(action).toContain('  newTag:');
-    expect(action).not.toContain('  new_tag:');
+    expect(action).toContain('  new_tag:');
   });
 });

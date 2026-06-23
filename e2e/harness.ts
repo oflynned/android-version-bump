@@ -191,5 +191,15 @@ export const gitInRemote = (
   ...args: string[]
 ): string => git(fixture.root, ['--git-dir', fixture.remote, ...args]);
 
-export const readOutput = (fixture: ActionFixture): string =>
-  fs.readFileSync(fixture.outputFile, 'utf8').trim();
+export const readOutput = (fixture: ActionFixture): string => {
+  const contents = fs.readFileSync(fixture.outputFile, 'utf8').trim();
+  const [header, ...lines] = contents.split('\n');
+  const [name, delimiter] = header.split('<<');
+
+  if (!delimiter) {
+    return contents;
+  }
+
+  const delimiterIndex = lines.indexOf(delimiter);
+  return `${name}=${lines.slice(0, delimiterIndex).join('\n')}`;
+};
