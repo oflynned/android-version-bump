@@ -1,6 +1,18 @@
 import { runCommand } from './run';
 import { Toolkit } from './toolkit';
 
+const getAuthenticatedRemote = (): string => {
+  return [
+    'https://',
+    process.env.GITHUB_ACTOR,
+    ':',
+    process.env.GITHUB_TOKEN,
+    '@github.com/',
+    process.env.GITHUB_REPOSITORY,
+    '.git',
+  ].join('');
+};
+
 export const setGitIdentity = async (toolkit: Toolkit): Promise<void> => {
   const defaultName = 'Automated Version Bump';
   const name = process.env.GITHUB_USER ?? defaultName;
@@ -30,20 +42,23 @@ export const createCommit = async (
   }
 };
 
+export const pushTag = async (
+  toolkit: Toolkit,
+  version: string,
+): Promise<void> => {
+  const remote = getAuthenticatedRemote();
+
+  toolkit.log.log('Publishing tag');
+  await runCommand('git', ['tag', version]);
+  await runCommand('git', ['push', remote, `refs/tags/${version}`]);
+};
+
 export const pushChanges = async (
   toolkit: Toolkit,
   version: string,
   publishTag?: boolean,
 ): Promise<void> => {
-  const remote = [
-    'https://',
-    process.env.GITHUB_ACTOR,
-    ':',
-    process.env.GITHUB_TOKEN,
-    '@github.com/',
-    process.env.GITHUB_REPOSITORY,
-    '.git',
-  ].join('');
+  const remote = getAuthenticatedRemote();
 
   if (publishTag) {
     toolkit.log.log('Publishing tag');

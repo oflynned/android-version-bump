@@ -2,10 +2,11 @@ import fs from 'fs/promises';
 import {
   getBuildNumber,
   getCommitMessage,
+  getReleaseMode,
   getTagPrefix,
   isSkippingCi,
 } from './env';
-import { createCommit, pushChanges, setGitIdentity } from './git';
+import { createCommit, pushChanges, pushTag, setGitIdentity } from './git';
 import {
   doesVersionPropertiesExist,
   getVersionProperties,
@@ -43,6 +44,7 @@ const main = async () => {
       const tagPrefix = getTagPrefix(tools);
       const skipCi = isSkippingCi(tools);
       const buildNumber = getBuildNumber(tools);
+      const releaseMode = getReleaseMode(tools);
       const versionFileExists = await doesVersionPropertiesExist(fs);
 
       let build: Build;
@@ -66,10 +68,29 @@ const main = async () => {
 
       const message = getCommitMessage(tools, build, tagPrefix, skipCi);
 
-      await setVersionProperties(fs, tools, build.version);
-      await setGitIdentity(tools);
-      await createCommit(tools, message);
-      await pushChanges(tools, build.name, true);
+      switch (releaseMode) {
+        case 'output':
+          tools.log.log('Release mode output: calculating outputs only');
+          break;
+        case 'write':
+          tools.log.log('Release mode write: updating version.properties');
+          await setVersionProperties(fs, tools, build.version);
+          break;
+        case 'tag':
+          tools.log.log('Release mode tag: publishing tag only');
+          await pushTag(tools, build.name);
+          break;
+        case 'commit-and-tag':
+          tools.log.log(
+            'Release mode commit-and-tag: updating version.properties, committing, and publishing tag',
+          );
+          await setVersionProperties(fs, tools, build.version);
+          await setGitIdentity(tools);
+          await createCommit(tools, message);
+          await pushChanges(tools, build.name, true);
+          break;
+      }
+
       tools.setOutput('new_tag', build.name);
       tools.setOutput('git_tag', build.name);
       tools.setOutput('version_name', build.name);

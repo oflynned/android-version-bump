@@ -9,6 +9,7 @@ type Payload = {
 };
 
 const inputNames = [
+  'mode',
   'gradle_location',
   'tag_prefix',
   'skip_ci',

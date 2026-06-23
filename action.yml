@@ -8,6 +8,10 @@ branding:
   icon: chevron-up
   color: blue
 inputs:
+  mode:
+    required: false
+    description: 'Release side effects to perform: output, write, tag, or commit-and-tag'
+    default: 'commit-and-tag'
   tag_prefix:
     required: false
     description: 'Prefix to add to the generated release commit message'

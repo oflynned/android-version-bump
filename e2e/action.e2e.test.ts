@@ -64,6 +64,33 @@ describe('packaged action with local git repositories', () => {
     ).toBe('version.properties');
   });
 
+  it('supports output-only mode without writing, committing, or pushing', () => {
+    const fixture = run({
+      inputs: {
+        mode: 'output',
+      },
+      unrelatedFile: true,
+    });
+
+    expect(fixture.result.status).toBe(0);
+    expect(
+      fs.existsSync(path.join(fixture.workspace, 'version.properties')),
+    ).toBe(false);
+    expect(gitInWorkspace(fixture, 'status', '--porcelain')).toBe(
+      '?? notes.txt',
+    );
+    expect(gitInRemote(fixture, 'rev-parse', 'refs/heads/main')).toBe(
+      fixture.triggerSha,
+    );
+    expect(gitInRemote(fixture, 'tag', '--list', '0.0.1')).toBe('');
+    expect(readOutputs(fixture)).toEqual({
+      new_tag: '0.0.1',
+      git_tag: '0.0.1',
+      version_name: '0.0.1',
+      version_code: '1',
+    });
+  });
+
   it.each([
     ['patch', ['fix: repair launch'], '1.2.4'],
     ['minor', ['feat: add login'], '1.3.0'],

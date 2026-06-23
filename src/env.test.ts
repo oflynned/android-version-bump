@@ -1,5 +1,5 @@
 import { mock } from 'jest-mock-extended';
-import { getCommitMessage } from './env';
+import { getCommitMessage, getReleaseMode } from './env';
 import { Toolkit } from './toolkit';
 import { Build } from './version';
 
@@ -17,6 +17,32 @@ const build: Build = {
 describe('Env', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+  });
+
+  describe('getReleaseMode', () => {
+    it('should default to commit-and-tag', () => {
+      toolkit.inputs['mode'] = undefined;
+
+      const result = getReleaseMode(toolkit);
+
+      expect(result).toEqual('commit-and-tag');
+    });
+
+    it('should return configured release mode', () => {
+      toolkit.inputs['mode'] = 'output';
+
+      const result = getReleaseMode(toolkit);
+
+      expect(result).toEqual('output');
+    });
+
+    it('should reject unknown release modes', () => {
+      toolkit.inputs['mode'] = 'publish-everything';
+
+      expect(() => getReleaseMode(toolkit)).toThrow(
+        'Invalid release mode "publish-everything"',
+      );
+    });
   });
 
   describe('getCommitMessage', () => {

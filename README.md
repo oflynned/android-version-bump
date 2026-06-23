@@ -41,6 +41,37 @@ Use `version_name` for Android's user-facing version, `version_code` for Android
 
 Pin to a version tag instead of `master` if you want fully repeatable workflow runs.
 
+#### Release modes
+
+By default, the action keeps its original behavior: it writes `version.properties`, commits it, creates a git tag, and pushes both changes.
+Set `mode` when your release process needs fewer side effects.
+
+| Mode           | Effect                                                                                       |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| output         | Calculates outputs only. Does not write `version.properties`, commit, or push.               |
+| write          | Writes `version.properties` in the runner workspace without committing or pushing.           |
+| tag            | Creates and pushes the generated git tag without writing `version.properties` or committing. |
+| commit-and-tag | Writes `version.properties`, commits it, creates a git tag, and pushes both changes.         |
+
+Use `output` when protected branches or review-only release workflows should avoid bot commits.
+You can pass the generated values directly to Gradle:
+
+```yaml
+- uses: actions/checkout@v6
+
+- name: Calculate version
+  id: bump_version
+  uses: oflynned/android-version-bump@master
+  with:
+    mode: output
+
+- name: Build release
+  run: >
+    ./gradlew :app:assembleRelease
+    -PversionName=${{ steps.bump_version.outputs.version_name }}
+    -PversionCode=${{ steps.bump_version.outputs.version_code }}
+```
+
 #### Private repos
 
 To use this action with `${{ secrets.GITHUB_TOKEN }}` in a private repo, set `contents: write` so the token can push the version commit and tag.
@@ -245,7 +276,8 @@ Enable this field by passing a build number/string/SHA as an input to the action
 Pass these in the `with:` block
 
 | Tag            | Effect                                                                                                                                                                         | Example                                                                            | Default value            |
-|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|--------------------------|
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------ |
+| mode           | Controls release side effects. Supported values are `output`, `write`, `tag`, and `commit-and-tag`.                                                                            | `mode: output` calculates versions without writing, committing, or pushing.        | `commit-and-tag`         |
 | tag_prefix     | Prefix used in the generated release commit message. The git tag, `git_tag`, and `new_tag` outputs remain the unprefixed version.                                              | `tag_prefix: 'release-'` makes the default commit message `release: release-1.0.0` | `v`                      |
 | skip_ci        | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                                   | true                     |
 | build_number   | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                       | ''                       |
@@ -254,7 +286,7 @@ Pass these in the `with:` block
 ## Outputs
 
 | Name         | Description                        | Example   |
-|--------------|------------------------------------|-----------|
+| ------------ | ---------------------------------- | --------- |
 | git_tag      | The newly created git tag          | `1.0.0`   |
 | version_name | The generated Android version name | `1.0.0.5` |
 | version_code | The generated Android version code | `10000`   |

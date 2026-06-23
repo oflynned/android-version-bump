@@ -2,11 +2,21 @@ import { Toolkit } from './toolkit';
 import { Build } from './version';
 
 export type Key =
+  | 'mode'
   | 'gradle_location'
   | 'tag_prefix'
   | 'skip_ci'
   | 'commit_message'
   | 'build_number';
+
+export const releaseModes = [
+  'output',
+  'write',
+  'tag',
+  'commit-and-tag',
+] as const;
+
+export type ReleaseMode = (typeof releaseModes)[number];
 
 export const getValue = (
   toolkit: Toolkit,
@@ -30,6 +40,20 @@ export const isSkippingCi = (toolkit: Toolkit): boolean => {
 
 export const getBuildNumber = (toolkit: Toolkit): string => {
   return getValue(toolkit, 'build_number', '');
+};
+
+export const getReleaseMode = (toolkit: Toolkit): ReleaseMode => {
+  const mode = getValue(toolkit, 'mode', 'commit-and-tag');
+
+  if (releaseModes.includes(mode as ReleaseMode)) {
+    return mode as ReleaseMode;
+  }
+
+  throw new Error(
+    `Invalid release mode "${mode}". Expected one of: ${releaseModes.join(
+      ', ',
+    )}`,
+  );
 };
 
 export const getCommitMessage = (
