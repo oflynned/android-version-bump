@@ -45,6 +45,7 @@ describe('packaged action with local git repositories', () => {
     expect(readOutput(fixture)).toBe('new_tag=0.0.1');
     expect(readOutputs(fixture)).toEqual({
       new_tag: '0.0.1',
+      git_tag: '0.0.1',
       version_name: '0.0.1',
       version_code: '1',
     });
@@ -123,6 +124,7 @@ describe('packaged action with local git repositories', () => {
     expect(readOutput(fixture)).toBe('new_tag=1.3.0.42');
     expect(readOutputs(fixture)).toEqual({
       new_tag: '1.3.0.42',
+      git_tag: '1.3.0.42',
       version_name: '1.3.0.42',
       version_code: '10300',
     });
@@ -175,6 +177,7 @@ describe('packaged action with local git repositories', () => {
     );
 
     expect(action).toContain('  new_tag:');
+    expect(action).toContain('  git_tag:');
     expect(action).toContain('  version_name:');
     expect(action).toContain('  version_code:');
   });
