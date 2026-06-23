@@ -6,6 +6,7 @@ import {
   gitInRemote,
   gitInWorkspace,
   readOutput,
+  readOutputs,
   runActionFixture,
 } from './harness';
 
@@ -42,6 +43,11 @@ describe('packaged action with local git repositories', () => {
       'release: v0.0.1 [skip-ci]',
     );
     expect(readOutput(fixture)).toBe('new_tag=0.0.1');
+    expect(readOutputs(fixture)).toEqual({
+      new_tag: '0.0.1',
+      version_name: '0.0.1',
+      version_code: '1',
+    });
     expect(gitInWorkspace(fixture, 'status', '--porcelain')).toBe(
       '?? notes.txt',
     );
@@ -115,6 +121,11 @@ describe('packaged action with local git repositories', () => {
       gitInRemote(fixture, 'show', `${fixture.branch}:version.properties`),
     ).toContain('buildNumber=42');
     expect(readOutput(fixture)).toBe('new_tag=1.3.0.42');
+    expect(readOutputs(fixture)).toEqual({
+      new_tag: '1.3.0.42',
+      version_name: '1.3.0.42',
+      version_code: '10300',
+    });
     expect(gitInRemote(fixture, 'rev-parse', 'refs/heads/main')).not.toBe(
       gitInRemote(fixture, 'rev-parse', `refs/heads/${fixture.branch}`),
     );
@@ -164,5 +175,7 @@ describe('packaged action with local git repositories', () => {
     );
 
     expect(action).toContain('  new_tag:');
+    expect(action).toContain('  version_name:');
+    expect(action).toContain('  version_code:');
   });
 });
