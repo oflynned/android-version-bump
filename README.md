@@ -164,7 +164,7 @@ Enable this field by passing a build number/string/SHA as an input to the action
 Pass these in the `with:` block
 
 | Tag            | Effect                                                                                                                                                                         | Example                                                                     | Default value            |
-|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|--------------------------|
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- | ------------------------ |
 | tag_prefix     | Allows you to set a prefix for a tag                                                                                                                                           | `tag_prefix: 'release-'` sets the tag to `release-1.0.0`                    | `v`                      |
 | skip_ci        | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                            | true                     |
 | build_number   | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                | ''                       |
@@ -173,7 +173,7 @@ Pass these in the `with:` block
 ## Outputs
 
 | Name    | Description           | Example  |
-|---------|-----------------------|----------|
+| ------- | --------------------- | -------- |
 | new_tag | The newly created tag | `v1.0.0` |
 
 ## Q&A
