@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import { getCommitsForVersionBump } from './commits';
 import {
   getBuildNumber,
   getCommitMessage,
@@ -40,7 +41,7 @@ const main = async () => {
         await runCommand('git', ['checkout', headRef]);
       }
 
-      await runCommand('git', ['fetch']);
+      await runCommand('git', ['fetch', '--tags']);
 
       const tagPrefix = getTagPrefix(tools);
       const skipCi = isSkippingCi(tools);
@@ -58,9 +59,9 @@ const main = async () => {
           tools,
           versionStorageBackend,
         );
-        const { commits } = tools.context.payload;
+        const commits = await getCommitsForVersionBump(tools);
 
-        build = bumpBuild(commits ?? [], existingVersion, buildNumber);
+        build = bumpBuild(commits, existingVersion, buildNumber);
       } else {
         // create version 0.0.1 by default in build.gradle if it does not exist
         const defaultBuild: Version = {

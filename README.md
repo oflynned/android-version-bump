@@ -23,6 +23,8 @@ For Kotlin DSL builds, pass the generated outputs into Gradle as project propert
 
 ```yaml
 - uses: actions/checkout@v6
+  with:
+    fetch-depth: 0
 
 - name: Bump version
   id: bump_version
@@ -40,6 +42,36 @@ For Kotlin DSL builds, pass the generated outputs into Gradle as project propert
 Use `version_name` for Android's user-facing version, `version_code` for Android's monotonic integer version code, and `git_tag` for release or deployment steps that need the git tag.
 
 Pin to a version tag instead of `master` if you want fully repeatable workflow runs.
+
+#### Commit range
+
+By default, the action reads commit messages from git history between the previous matching tag and `HEAD`.
+Use `fetch-depth: 0` with `actions/checkout` so the runner has enough history and tags to find that range.
+If no matching previous tag exists, the action reads all reachable commits.
+If the git range cannot be read, the action falls back to the GitHub event payload for compatibility.
+
+| Range        | Behavior                                                                      |
+| ------------ | ----------------------------------------------------------------------------- |
+| previous-tag | Reads commits from the previous tag matching `commit_tag_pattern` to `HEAD`.  |
+| base-ref     | Reads commits from `commit_base_ref` to `HEAD`.                               |
+| payload      | Reads commit messages from the GitHub event payload, matching older behavior. |
+
+For pull request or protected-branch workflows, set an explicit base ref:
+
+```yaml
+- uses: actions/checkout@v6
+  with:
+    fetch-depth: 0
+
+- name: Bump version
+  id: bump_version
+  uses: oflynned/android-version-bump@master
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    commit_range: base-ref
+    commit_base_ref: origin/main
+```
 
 #### Private repos
 
@@ -275,18 +307,21 @@ Enable this field by passing a build number/string/SHA as an input to the action
 
 Pass these in the `with:` block
 
-| Tag             | Effect                                                                                                                                                                         | Example                                                                            | Default value            |
-|-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|--------------------------|
-| version_storage | Selects where version metadata is read from and written to. Supported values are `version-properties` and `gradle-properties`.                                                 | `version_storage: gradle-properties` updates `gradle.properties`                   | `version-properties`     |
-| tag_prefix      | Prefix used in the generated release commit message. The git tag, `git_tag`, and `new_tag` outputs remain the unprefixed version.                                              | `tag_prefix: 'release-'` makes the default commit message `release: release-1.0.0` | `v`                      |
-| skip_ci         | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                                   | true                     |
-| build_number    | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                       | ''                       |
-| commit_message  | Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message. | `ci: {{ version }} was just released into the wild! :tada: :partying_face:`        | `release: {{ version }}` |
+| Tag                | Effect                                                                                                                                                                         | Example                                                                            | Default value            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------ |
+| commit_range       | Selects where version bump commit messages come from. Supported values are `previous-tag`, `base-ref`, and `payload`.                                                          | `commit_range: base-ref` reads from `commit_base_ref` to `HEAD`                    | `previous-tag`           |
+| commit_base_ref    | Base ref used when `commit_range` is `base-ref`. If omitted, pull request workflows use `origin/${{ github.base_ref }}` when available.                                        | `commit_base_ref: origin/main`                                                     | ''                       |
+| commit_tag_pattern | Tag glob used when `commit_range` is `previous-tag`.                                                                                                                           | `commit_tag_pattern: 'v*'`                                                         | `*`                      |
+| version_storage    | Selects where version metadata is read from and written to. Supported values are `version-properties` and `gradle-properties`.                                                 | `version_storage: gradle-properties` updates `gradle.properties`                   | `version-properties`     |
+| tag_prefix         | Prefix used in the generated release commit message. The git tag, `git_tag`, and `new_tag` outputs remain the unprefixed version.                                              | `tag_prefix: 'release-'` makes the default commit message `release: release-1.0.0` | `v`                      |
+| skip_ci            | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                                   | true                     |
+| build_number       | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                       | ''                       |
+| commit_message     | Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message. | `ci: {{ version }} was just released into the wild! :tada: :partying_face:`        | `release: {{ version }}` |
 
 ## Outputs
 
 | Name         | Description                        | Example   |
-|--------------|------------------------------------|-----------|
+| ------------ | ---------------------------------- | --------- |
 | git_tag      | The newly created git tag          | `1.0.0`   |
 | version_name | The generated Android version name | `1.0.0.5` |
 | version_code | The generated Android version code | `10000`   |

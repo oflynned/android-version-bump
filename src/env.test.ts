@@ -1,5 +1,11 @@
 import { mock } from 'jest-mock-extended';
-import { getCommitMessage, getVersionStorageBackend } from './env';
+import {
+  getCommitBaseRef,
+  getCommitMessage,
+  getCommitRange,
+  getCommitTagPattern,
+  getVersionStorageBackend,
+} from './env';
 import { Toolkit } from './toolkit';
 import { Build } from './version';
 
@@ -17,6 +23,68 @@ const build: Build = {
 describe('Env', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+  });
+
+  describe('getCommitRange', () => {
+    it('should default to previous-tag', () => {
+      toolkit.inputs['commit_range'] = undefined;
+
+      const result = getCommitRange(toolkit);
+
+      expect(result).toEqual('previous-tag');
+    });
+
+    it('should return configured commit range', () => {
+      toolkit.inputs['commit_range'] = 'base-ref';
+
+      const result = getCommitRange(toolkit);
+
+      expect(result).toEqual('base-ref');
+    });
+
+    it('should reject unknown commit ranges', () => {
+      toolkit.inputs['commit_range'] = 'everything';
+
+      expect(() => getCommitRange(toolkit)).toThrow(
+        'Invalid commit range "everything"',
+      );
+    });
+  });
+
+  describe('getCommitBaseRef', () => {
+    it('should default to empty string', () => {
+      toolkit.inputs['commit_base_ref'] = undefined;
+
+      const result = getCommitBaseRef(toolkit);
+
+      expect(result).toEqual('');
+    });
+
+    it('should return configured commit base ref', () => {
+      toolkit.inputs['commit_base_ref'] = 'origin/main';
+
+      const result = getCommitBaseRef(toolkit);
+
+      expect(result).toEqual('origin/main');
+    });
+  });
+
+  describe('getCommitTagPattern', () => {
+    it('should default to any tag', () => {
+      toolkit.inputs['commit_tag_pattern'] = undefined;
+
+      const result = getCommitTagPattern(toolkit);
+
+      expect(result).toEqual('*');
+    });
+
+    it('should return configured commit tag pattern', () => {
+      toolkit.inputs['commit_tag_pattern'] = 'v*';
+
+      const result = getCommitTagPattern(toolkit);
+
+      expect(result).toEqual('v*');
+    });
   });
 
   describe('getVersionStorageBackend', () => {

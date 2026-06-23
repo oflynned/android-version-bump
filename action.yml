@@ -8,6 +8,17 @@ branding:
   icon: chevron-up
   color: blue
 inputs:
+  commit_range:
+    required: false
+    description: 'Commit range source for version bumping: previous-tag, base-ref, or payload'
+    default: 'previous-tag'
+  commit_base_ref:
+    required: false
+    description: 'Base ref used when commit_range is base-ref, such as origin/main'
+  commit_tag_pattern:
+    required: false
+    description: 'Git tag pattern used when commit_range is previous-tag'
+    default: '*'
   version_storage:
     required: false
     description: 'Version metadata storage backend: version-properties or gradle-properties'

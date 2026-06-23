@@ -2,6 +2,9 @@ import { Toolkit } from './toolkit';
 import { Build } from './version';
 
 export type Key =
+  | 'commit_range'
+  | 'commit_base_ref'
+  | 'commit_tag_pattern'
   | 'gradle_location'
   | 'version_storage'
   | 'tag_prefix'
@@ -15,6 +18,10 @@ export const versionStorageBackends = [
 ] as const;
 
 export type VersionStorageBackend = (typeof versionStorageBackends)[number];
+
+export const commitRanges = ['previous-tag', 'base-ref', 'payload'] as const;
+
+export type CommitRange = (typeof commitRanges)[number];
 
 export const getValue = (
   toolkit: Toolkit,
@@ -38,6 +45,28 @@ export const isSkippingCi = (toolkit: Toolkit): boolean => {
 
 export const getBuildNumber = (toolkit: Toolkit): string => {
   return getValue(toolkit, 'build_number', '');
+};
+
+export const getCommitRange = (toolkit: Toolkit): CommitRange => {
+  const range = getValue(toolkit, 'commit_range', 'previous-tag');
+
+  if (commitRanges.includes(range as CommitRange)) {
+    return range as CommitRange;
+  }
+
+  throw new Error(
+    `Invalid commit range "${range}". Expected one of: ${commitRanges.join(
+      ', ',
+    )}`,
+  );
+};
+
+export const getCommitBaseRef = (toolkit: Toolkit): string => {
+  return getValue(toolkit, 'commit_base_ref', '');
+};
+
+export const getCommitTagPattern = (toolkit: Toolkit): string => {
+  return getValue(toolkit, 'commit_tag_pattern', '*');
 };
 
 export const getVersionStorageBackend = (
