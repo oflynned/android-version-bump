@@ -48,6 +48,7 @@ describe('packaged action with local git repositories', () => {
       git_tag: '0.0.1',
       version_name: '0.0.1',
       version_code: '1',
+      release_action: 'released',
     });
     expect(gitInWorkspace(fixture, 'status', '--porcelain')).toBe(
       '?? notes.txt',
@@ -164,6 +165,7 @@ describe('packaged action with local git repositories', () => {
       git_tag: '1.3.0.42',
       version_name: '1.3.0.42',
       version_code: '10300',
+      release_action: 'released',
     });
     expect(gitInRemote(fixture, 'rev-parse', 'refs/heads/main')).not.toBe(
       gitInRemote(fixture, 'rev-parse', `refs/heads/${fixture.branch}`),
@@ -204,6 +206,220 @@ describe('packaged action with local git repositories', () => {
       ].join('\n'),
     );
     expect(gitInRemote(fixture, 'rev-parse', 'refs/tags/1.2.4')).toBe(
+      gitInRemote(fixture, 'rev-parse', 'refs/heads/main'),
+    );
+  });
+
+  it('bumps only the configured mobile app version and tag', () => {
+    const fixture = run({
+      appVersions: {
+        'apps/mobile': '1.2.3',
+        'apps/admin': '9.8.7',
+      },
+      previousTags: ['mobile-v1.2.3', 'admin-v9.8.7'],
+      commits: [
+        {
+          message: 'fix: repair mobile launch',
+          filePath: 'apps/mobile/src/Main.kt',
+        },
+      ],
+      inputs: {
+        app_path: 'apps/mobile',
+        git_tag_prefix: 'mobile-v',
+        path_filter: 'true',
+      },
+    });
+
+    expect(fixture.result.status).toBe(0);
+    expect(
+      gitInRemote(fixture, 'show', 'main:apps/mobile/version.properties'),
+    ).toBe(
+      [
+        'majorVersion=1',
+        'minorVersion=2',
+        'patchVersion=4',
+        'buildNumber=',
+      ].join('\n'),
+    );
+    expect(
+      gitInRemote(fixture, 'show', 'main:apps/admin/version.properties'),
+    ).toBe(
+      [
+        'majorVersion=9',
+        'minorVersion=8',
+        'patchVersion=7',
+        'buildNumber=',
+      ].join('\n'),
+    );
+    expect(gitInRemote(fixture, 'rev-parse', 'refs/tags/mobile-v1.2.4')).toBe(
+      gitInRemote(fixture, 'rev-parse', 'refs/heads/main'),
+    );
+    expect(readOutputs(fixture)).toMatchObject({
+      new_tag: 'mobile-v1.2.4',
+      git_tag: 'mobile-v1.2.4',
+      version_name: '1.2.4',
+      release_action: 'released',
+    });
+  });
+
+  it('bumps only the configured admin app version and tag', () => {
+    const fixture = run({
+      appVersions: {
+        'apps/mobile': '1.2.3',
+        'apps/admin': '9.8.7',
+      },
+      previousTags: ['mobile-v1.2.3', 'admin-v9.8.7'],
+      commits: [
+        {
+          message: 'feat: add admin dashboard',
+          filePath: 'apps/admin/src/Main.kt',
+        },
+      ],
+      inputs: {
+        app_path: 'apps/admin',
+        git_tag_prefix: 'admin-v',
+        path_filter: 'true',
+      },
+    });
+
+    expect(fixture.result.status).toBe(0);
+    expect(
+      gitInRemote(fixture, 'show', 'main:apps/admin/version.properties'),
+    ).toBe(
+      [
+        'majorVersion=9',
+        'minorVersion=9',
+        'patchVersion=0',
+        'buildNumber=',
+      ].join('\n'),
+    );
+    expect(
+      gitInRemote(fixture, 'show', 'main:apps/mobile/version.properties'),
+    ).toBe(
+      [
+        'majorVersion=1',
+        'minorVersion=2',
+        'patchVersion=3',
+        'buildNumber=',
+      ].join('\n'),
+    );
+    expect(gitInRemote(fixture, 'rev-parse', 'refs/tags/admin-v9.9.0')).toBe(
+      gitInRemote(fixture, 'rev-parse', 'refs/heads/main'),
+    );
+    expect(readOutputs(fixture)).toMatchObject({
+      new_tag: 'admin-v9.9.0',
+      git_tag: 'admin-v9.9.0',
+      version_name: '9.9.0',
+      release_action: 'released',
+    });
+  });
+
+  it('succeeds without side effects when path filtering finds no app changes', () => {
+    const fixture = run({
+      appVersions: {
+        'apps/mobile': '1.2.3',
+        'apps/admin': '9.8.7',
+      },
+      previousTags: ['mobile-v1.2.3', 'admin-v9.8.7'],
+      commits: [
+        {
+          message: 'fix: repair admin launch',
+          filePath: 'apps/admin/src/Main.kt',
+        },
+      ],
+      inputs: {
+        app_path: 'apps/mobile',
+        git_tag_prefix: 'mobile-v',
+        path_filter: 'true',
+      },
+    });
+
+    expect(fixture.result.status).toBe(0);
+    expect(
+      gitInRemote(fixture, 'show', 'main:apps/mobile/version.properties'),
+    ).toBe(
+      [
+        'majorVersion=1',
+        'minorVersion=2',
+        'patchVersion=3',
+        'buildNumber=',
+      ].join('\n'),
+    );
+    expect(gitInRemote(fixture, 'rev-parse', 'refs/heads/main')).toBe(
+      fixture.triggerSha,
+    );
+    expect(gitInRemote(fixture, 'tag', '--list', 'mobile-v1.2.4')).toBe('');
+    expect(readOutputs(fixture)).toMatchObject({
+      new_tag: 'mobile-v1.2.3',
+      git_tag: 'mobile-v1.2.3',
+      version_name: '1.2.3',
+      release_action: 'skipped',
+    });
+  });
+
+  it('rejects payload commit range when path filtering is enabled', () => {
+    const fixture = run({
+      appVersions: {
+        'apps/mobile': '1.2.3',
+      },
+      commits: [
+        {
+          message: 'fix: repair mobile launch',
+          filePath: 'apps/mobile/src/Main.kt',
+        },
+      ],
+      inputs: {
+        app_path: 'apps/mobile',
+        commit_range: 'payload',
+        path_filter: 'true',
+      },
+    });
+
+    expect(fixture.result.status).toBe(1);
+    expect(`${fixture.result.stdout}${fixture.result.stderr}`).toContain(
+      'path_filter cannot be used with commit_range payload',
+    );
+    expect(gitInRemote(fixture, 'tag', '--list', '1.2.4')).toBe('');
+  });
+
+  it('uses app-specific previous tags for the bump range', () => {
+    const fixture = run({
+      appVersions: {
+        'apps/mobile': '1.2.3',
+        'apps/admin': '9.8.7',
+      },
+      previousTags: ['mobile-v1.2.3', 'admin-v9.8.7'],
+      preTagCommits: [
+        {
+          message: 'feat: released mobile feature',
+          filePath: 'apps/mobile/src/Main.kt',
+        },
+      ],
+      commits: [
+        {
+          message: 'fix: repair mobile launch',
+          filePath: 'apps/mobile/src/Main.kt',
+        },
+      ],
+      inputs: {
+        app_path: 'apps/mobile',
+        git_tag_prefix: 'mobile-v',
+        path_filter: 'true',
+      },
+    });
+
+    expect(fixture.result.status).toBe(0);
+    expect(
+      gitInRemote(fixture, 'show', 'main:apps/mobile/version.properties'),
+    ).toBe(
+      [
+        'majorVersion=1',
+        'minorVersion=2',
+        'patchVersion=4',
+        'buildNumber=',
+      ].join('\n'),
+    );
+    expect(gitInRemote(fixture, 'rev-parse', 'refs/tags/mobile-v1.2.4')).toBe(
       gitInRemote(fixture, 'rev-parse', 'refs/heads/main'),
     );
   });
@@ -258,5 +474,6 @@ describe('packaged action with local git repositories', () => {
     expect(action).toContain('  git_tag:');
     expect(action).toContain('  version_name:');
     expect(action).toContain('  version_code:');
+    expect(action).toContain('  release_action:');
   });
 });

@@ -1,10 +1,14 @@
 import fs from 'fs/promises';
-import { getCommitsForVersionBump } from './commits';
+import { getVersionBumpContext } from './commits';
 import {
+  getAppPath,
   getBuildNumber,
   getCommitMessage,
+  getCommitRange,
+  getGitTagPrefix,
   getTagPrefix,
   getVersionStorageBackend,
+  isPathFilterEnabled,
   isSkippingCi,
 } from './env';
 import { createCommit, pushChanges, setGitIdentity } from './git';
@@ -17,6 +21,25 @@ import {
 import { runCommand } from './run';
 import { Toolkit } from './toolkit';
 import { Build, bumpBuild, getBuildFromVersion, Version } from './version';
+
+type ReleaseAction = 'released' | 'skipped';
+
+const isChangedPathInApp = (changedPath: string, appPath: string): boolean => {
+  return changedPath === appPath || changedPath.startsWith(`${appPath}/`);
+};
+
+const setVersionOutputs = (
+  tools: Toolkit,
+  build: Build,
+  gitTag: string,
+  releaseAction: ReleaseAction,
+): void => {
+  tools.setOutput('new_tag', gitTag);
+  tools.setOutput('git_tag', gitTag);
+  tools.setOutput('version_name', build.name);
+  tools.setOutput('version_code', build.code.toString());
+  tools.setOutput('release_action', releaseAction);
+};
 
 const main = async () => {
   await Toolkit.run(async (tools): Promise<void> => {
@@ -44,24 +67,48 @@ const main = async () => {
       await runCommand('git', ['fetch', '--tags']);
 
       const tagPrefix = getTagPrefix(tools);
+      const gitTagPrefix = getGitTagPrefix(tools);
       const skipCi = isSkippingCi(tools);
       const buildNumber = getBuildNumber(tools);
+      const appPath = getAppPath(tools);
+      const pathFilter = isPathFilterEnabled(tools);
+
+      if (pathFilter && !appPath) {
+        throw new Error('path_filter requires app_path');
+      }
+
+      if (pathFilter && getCommitRange(tools) === 'payload') {
+        throw new Error('path_filter cannot be used with commit_range payload');
+      }
+
       const versionStorageBackend = getVersionStorageBackend(tools);
       const versionFileExists = await doesVersionPropertiesExist(
         fs,
         versionStorageBackend,
+        appPath,
       );
 
       let build: Build;
+      let currentBuild: Build | undefined;
+      let versionChanged = true;
+      let versionBumpContext:
+        | Awaited<ReturnType<typeof getVersionBumpContext>>
+        | undefined;
 
       if (versionFileExists) {
         const existingVersion = await getVersionProperties(
           tools,
           versionStorageBackend,
+          appPath,
         );
-        const commits = await getCommitsForVersionBump(tools);
+        currentBuild = getBuildFromVersion(existingVersion);
+        versionBumpContext = await getVersionBumpContext(tools, !pathFilter);
 
-        build = bumpBuild(commits, existingVersion, buildNumber);
+        build = bumpBuild(
+          versionBumpContext.commits,
+          existingVersion,
+          buildNumber,
+        );
       } else {
         // create version 0.0.1 by default in build.gradle if it does not exist
         const defaultBuild: Version = {
@@ -72,6 +119,32 @@ const main = async () => {
         };
 
         build = getBuildFromVersion(defaultBuild);
+
+        if (pathFilter) {
+          versionBumpContext = await getVersionBumpContext(tools, false);
+        }
+      }
+
+      if (
+        pathFilter &&
+        versionBumpContext &&
+        !versionBumpContext.changedPaths.some((changedPath) =>
+          isChangedPathInApp(changedPath, appPath),
+        )
+      ) {
+        versionChanged = false;
+        build = currentBuild ?? build;
+      }
+
+      const gitTag = `${gitTagPrefix}${build.name}`;
+
+      if (!versionChanged) {
+        setVersionOutputs(tools, build, gitTag, 'skipped');
+        tools.exit.success(
+          `No changes detected for ${appPath}; version remains ${build.name}.`,
+        );
+
+        return;
       }
 
       const message = getCommitMessage(tools, build, tagPrefix, skipCi);
@@ -81,16 +154,14 @@ const main = async () => {
         tools,
         build.version,
         versionStorageBackend,
+        appPath,
       );
       await setGitIdentity(tools);
       await createCommit(tools, message, [
-        getVersionStoragePath(versionStorageBackend),
+        getVersionStoragePath(versionStorageBackend, appPath),
       ]);
-      await pushChanges(tools, build.name, true);
-      tools.setOutput('new_tag', build.name);
-      tools.setOutput('git_tag', build.name);
-      tools.setOutput('version_name', build.name);
-      tools.setOutput('version_code', build.code.toString());
+      await pushChanges(tools, gitTag, true);
+      setVersionOutputs(tools, build, gitTag, 'released');
 
       tools.exit.success(
         `Version bumped version to ${build.name} successfully!`,
