@@ -22,6 +22,8 @@ import { runCommand } from './run';
 import { Toolkit } from './toolkit';
 import { Build, bumpBuild, getBuildFromVersion, Version } from './version';
 
+type ReleaseAction = 'released' | 'skipped';
+
 const isChangedPathInApp = (changedPath: string, appPath: string): boolean => {
   return changedPath === appPath || changedPath.startsWith(`${appPath}/`);
 };
@@ -30,13 +32,13 @@ const setVersionOutputs = (
   tools: Toolkit,
   build: Build,
   gitTag: string,
-  versionChanged: boolean,
+  releaseAction: ReleaseAction,
 ): void => {
   tools.setOutput('new_tag', gitTag);
   tools.setOutput('git_tag', gitTag);
   tools.setOutput('version_name', build.name);
   tools.setOutput('version_code', build.code.toString());
-  tools.setOutput('version_changed', versionChanged.toString());
+  tools.setOutput('release_action', releaseAction);
 };
 
 const main = async () => {
@@ -137,7 +139,7 @@ const main = async () => {
       const gitTag = `${gitTagPrefix}${build.name}`;
 
       if (!versionChanged) {
-        setVersionOutputs(tools, build, gitTag, false);
+        setVersionOutputs(tools, build, gitTag, 'skipped');
         tools.exit.success(
           `No changes detected for ${appPath}; version remains ${build.name}.`,
         );
@@ -159,7 +161,7 @@ const main = async () => {
         getVersionStoragePath(versionStorageBackend, appPath),
       ]);
       await pushChanges(tools, gitTag, true);
-      setVersionOutputs(tools, build, gitTag, true);
+      setVersionOutputs(tools, build, gitTag, 'released');
 
       tools.exit.success(
         `Version bumped version to ${build.name} successfully!`,

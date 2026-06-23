@@ -48,7 +48,7 @@ describe('packaged action with local git repositories', () => {
       git_tag: '0.0.1',
       version_name: '0.0.1',
       version_code: '1',
-      version_changed: 'true',
+      release_action: 'released',
     });
     expect(gitInWorkspace(fixture, 'status', '--porcelain')).toBe(
       '?? notes.txt',
@@ -165,7 +165,7 @@ describe('packaged action with local git repositories', () => {
       git_tag: '1.3.0.42',
       version_name: '1.3.0.42',
       version_code: '10300',
-      version_changed: 'true',
+      release_action: 'released',
     });
     expect(gitInRemote(fixture, 'rev-parse', 'refs/heads/main')).not.toBe(
       gitInRemote(fixture, 'rev-parse', `refs/heads/${fixture.branch}`),
@@ -258,7 +258,7 @@ describe('packaged action with local git repositories', () => {
       new_tag: 'mobile-v1.2.4',
       git_tag: 'mobile-v1.2.4',
       version_name: '1.2.4',
-      version_changed: 'true',
+      release_action: 'released',
     });
   });
 
@@ -310,7 +310,7 @@ describe('packaged action with local git repositories', () => {
       new_tag: 'admin-v9.9.0',
       git_tag: 'admin-v9.9.0',
       version_name: '9.9.0',
-      version_changed: 'true',
+      release_action: 'released',
     });
   });
 
@@ -353,7 +353,7 @@ describe('packaged action with local git repositories', () => {
       new_tag: 'mobile-v1.2.3',
       git_tag: 'mobile-v1.2.3',
       version_name: '1.2.3',
-      version_changed: 'false',
+      release_action: 'skipped',
     });
   });
 
@@ -474,6 +474,6 @@ describe('packaged action with local git repositories', () => {
     expect(action).toContain('  git_tag:');
     expect(action).toContain('  version_name:');
     expect(action).toContain('  version_code:');
-    expect(action).toContain('  version_changed:');
+    expect(action).toContain('  release_action:');
   });
 });

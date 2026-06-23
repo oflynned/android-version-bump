@@ -55,5 +55,5 @@ outputs:
     description: 'The generated Android version name'
   version_code:
     description: 'The generated Android version code'
-  version_changed:
-    description: 'Whether this run wrote, committed, tagged, and pushed a new version'
+  release_action:
+    description: 'The release action performed: released or skipped'
