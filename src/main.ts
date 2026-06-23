@@ -4,9 +4,8 @@ import {
   getAppPath,
   getBuildNumber,
   getCommitMessage,
-  getCommitRange,
+  getCommitMessageVersionPrefix,
   getGitTagPrefix,
-  getTagPrefix,
   getVersionStorageBackend,
   isPathFilterEnabled,
   isSkippingCi,
@@ -34,7 +33,6 @@ const setVersionOutputs = (
   gitTag: string,
   releaseAction: ReleaseAction,
 ): void => {
-  tools.setOutput('new_tag', gitTag);
   tools.setOutput('git_tag', gitTag);
   tools.setOutput('version_name', build.name);
   tools.setOutput('version_code', build.code.toString());
@@ -66,7 +64,7 @@ const main = async () => {
 
       await runCommand('git', ['fetch', '--tags']);
 
-      const tagPrefix = getTagPrefix(tools);
+      const commitMessageVersionPrefix = getCommitMessageVersionPrefix(tools);
       const gitTagPrefix = getGitTagPrefix(tools);
       const skipCi = isSkippingCi(tools);
       const buildNumber = getBuildNumber(tools);
@@ -75,10 +73,6 @@ const main = async () => {
 
       if (pathFilter && !appPath) {
         throw new Error('path_filter requires app_path');
-      }
-
-      if (pathFilter && getCommitRange(tools) === 'payload') {
-        throw new Error('path_filter cannot be used with commit_range payload');
       }
 
       const versionStorageBackend = getVersionStorageBackend(tools);
@@ -102,7 +96,7 @@ const main = async () => {
           appPath,
         );
         currentBuild = getBuildFromVersion(existingVersion);
-        versionBumpContext = await getVersionBumpContext(tools, !pathFilter);
+        versionBumpContext = await getVersionBumpContext(tools);
 
         build = bumpBuild(
           versionBumpContext.commits,
@@ -121,7 +115,7 @@ const main = async () => {
         build = getBuildFromVersion(defaultBuild);
 
         if (pathFilter) {
-          versionBumpContext = await getVersionBumpContext(tools, false);
+          versionBumpContext = await getVersionBumpContext(tools);
         }
       }
 
@@ -147,7 +141,12 @@ const main = async () => {
         return;
       }
 
-      const message = getCommitMessage(tools, build, tagPrefix, skipCi);
+      const message = getCommitMessage(
+        tools,
+        build,
+        commitMessageVersionPrefix,
+        skipCi,
+      );
 
       await setVersionProperties(
         fs,

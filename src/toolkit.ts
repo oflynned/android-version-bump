@@ -1,23 +1,16 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
-import * as github from '@actions/github';
 import fs from 'fs/promises';
-import type { Commit } from './version';
-
-type Payload = {
-  commits?: Commit[];
-};
 
 const inputNames = [
   'app_path',
   'commit_range',
   'commit_base_ref',
   'commit_tag_pattern',
-  'gradle_location',
+  'commit_message_version_prefix',
   'git_tag_prefix',
   'path_filter',
   'version_storage',
-  'tag_prefix',
   'skip_ci',
   'commit_message',
   'build_number',
@@ -27,10 +20,6 @@ const formatLogValue = (value: unknown): string =>
   typeof value === 'string' ? value : JSON.stringify(value);
 
 export class Toolkit {
-  readonly context = {
-    payload: github.context.payload as Payload,
-  };
-
   readonly inputs = Object.fromEntries(
     inputNames.map((name) => [name, core.getInput(name) || undefined]),
   ) as Record<string, string | undefined>;

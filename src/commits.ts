@@ -33,10 +33,6 @@ const parseChangedPaths = (output: string): string[] => {
   );
 };
 
-const getPayloadCommits = (toolkit: Toolkit): Commit[] => {
-  return toolkit.context.payload.commits ?? [];
-};
-
 const getDefaultBaseRef = (): string => {
   const baseRef = process.env.GITHUB_BASE_REF;
 
@@ -49,7 +45,7 @@ const getDefaultBaseRef = (): string => {
 
 const resolveGitRange = async (
   toolkit: Toolkit,
-  commitRange: Exclude<CommitRange, 'payload'>,
+  commitRange: CommitRange,
 ): Promise<string> => {
   if (commitRange === 'base-ref') {
     const baseRef = getCommitBaseRef(toolkit) || getDefaultBaseRef();
@@ -79,7 +75,7 @@ const resolveGitRange = async (
 
 const getGitVersionBumpContext = async (
   toolkit: Toolkit,
-  commitRange: Exclude<CommitRange, 'payload'>,
+  commitRange: CommitRange,
 ): Promise<GitVersionBumpContext> => {
   let range: string | undefined;
 
@@ -118,63 +114,11 @@ const getGitVersionBumpContext = async (
 
 export const getVersionBumpContext = async (
   toolkit: Toolkit,
-  allowPayloadFallback = true,
 ): Promise<GitVersionBumpContext> => {
   const commitRange = getCommitRange(toolkit);
+  const context = await getGitVersionBumpContext(toolkit, commitRange);
 
-  if (commitRange === 'payload') {
-    toolkit.log.log('Reading version bump commits from GitHub event payload');
+  toolkit.log.log(`Reading version bump commits from git ${commitRange} range`);
 
-    return {
-      commits: getPayloadCommits(toolkit),
-      changedPaths: [],
-    };
-  }
-
-  try {
-    const context = await getGitVersionBumpContext(toolkit, commitRange);
-
-    if (context.commits.length > 0) {
-      toolkit.log.log(
-        `Reading version bump commits from git ${commitRange} range`,
-      );
-
-      return context;
-    }
-
-    if (allowPayloadFallback) {
-      toolkit.log.warn(
-        `Git ${commitRange} range did not contain commits; falling back to GitHub event payload`,
-      );
-    }
-  } catch (error) {
-    if (!allowPayloadFallback) {
-      throw error;
-    }
-
-    toolkit.log.warn(
-      `Could not read git ${commitRange} range; falling back to GitHub event payload`,
-    );
-    toolkit.log.warn(error);
-  }
-
-  if (allowPayloadFallback) {
-    return {
-      commits: getPayloadCommits(toolkit),
-      changedPaths: [],
-    };
-  }
-
-  return {
-    commits: [],
-    changedPaths: [],
-  };
-};
-
-export const getCommitsForVersionBump = async (
-  toolkit: Toolkit,
-): Promise<Commit[]> => {
-  const { commits } = await getVersionBumpContext(toolkit);
-
-  return commits;
+  return context;
 };

@@ -6,11 +6,10 @@ export type Key =
   | 'commit_range'
   | 'commit_base_ref'
   | 'commit_tag_pattern'
-  | 'gradle_location'
+  | 'commit_message_version_prefix'
   | 'git_tag_prefix'
   | 'path_filter'
   | 'version_storage'
-  | 'tag_prefix'
   | 'skip_ci'
   | 'commit_message'
   | 'build_number';
@@ -22,7 +21,7 @@ export const versionStorageBackends = [
 
 export type VersionStorageBackend = (typeof versionStorageBackends)[number];
 
-export const commitRanges = ['previous-tag', 'base-ref', 'payload'] as const;
+export const commitRanges = ['previous-tag', 'base-ref'] as const;
 
 export type CommitRange = (typeof commitRanges)[number];
 
@@ -32,10 +31,6 @@ export const getValue = (
   fallback?: string,
 ): string => {
   return toolkit.inputs[key] ?? fallback ?? '';
-};
-
-export const getGradleLocation = (toolkit: Toolkit): string => {
-  return getValue(toolkit, 'gradle_location', 'app/build.gradle');
 };
 
 export const getAppPath = (toolkit: Toolkit): string => {
@@ -51,8 +46,8 @@ export const getAppPath = (toolkit: Toolkit): string => {
   return appPath;
 };
 
-export const getTagPrefix = (toolkit: Toolkit): string => {
-  return getValue(toolkit, 'tag_prefix', 'v');
+export const getCommitMessageVersionPrefix = (toolkit: Toolkit): string => {
+  return getValue(toolkit, 'commit_message_version_prefix', 'v');
 };
 
 export const getGitTagPrefix = (toolkit: Toolkit): string => {
@@ -120,14 +115,14 @@ export const getVersionStorageBackend = (
 export const getCommitMessage = (
   toolkit: Toolkit,
   build: Build,
-  tagPrefix: string,
+  commitMessageVersionPrefix: string,
   skipCi: boolean,
 ): string => {
-  const tagName = `${tagPrefix}${build.name}`;
-  const defaultMessage = `release: ${tagName}`;
+  const version = `${commitMessageVersionPrefix}${build.name}`;
+  const defaultMessage = `release: ${version}`;
   const message = getValue(toolkit, 'commit_message', defaultMessage).replace(
     '{{version}}',
-    tagName,
+    version,
   );
   const flag = skipCi ? '[skip-ci]' : '';
 
