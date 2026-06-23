@@ -10,6 +10,7 @@ type Payload = {
 
 const inputNames = [
   'gradle_location',
+  'version_storage',
   'tag_prefix',
   'skip_ci',
   'commit_message',

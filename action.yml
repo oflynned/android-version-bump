@@ -8,6 +8,10 @@ branding:
   icon: chevron-up
   color: blue
 inputs:
+  version_storage:
+    required: false
+    description: 'Version metadata storage backend: version-properties or gradle-properties'
+    default: 'version-properties'
   tag_prefix:
     required: false
     description: 'Prefix to add to the generated release commit message'

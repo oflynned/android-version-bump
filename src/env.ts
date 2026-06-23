@@ -3,10 +3,18 @@ import { Build } from './version';
 
 export type Key =
   | 'gradle_location'
+  | 'version_storage'
   | 'tag_prefix'
   | 'skip_ci'
   | 'commit_message'
   | 'build_number';
+
+export const versionStorageBackends = [
+  'version-properties',
+  'gradle-properties',
+] as const;
+
+export type VersionStorageBackend = (typeof versionStorageBackends)[number];
 
 export const getValue = (
   toolkit: Toolkit,
@@ -30,6 +38,22 @@ export const isSkippingCi = (toolkit: Toolkit): boolean => {
 
 export const getBuildNumber = (toolkit: Toolkit): string => {
   return getValue(toolkit, 'build_number', '');
+};
+
+export const getVersionStorageBackend = (
+  toolkit: Toolkit,
+): VersionStorageBackend => {
+  const backend = getValue(toolkit, 'version_storage', 'version-properties');
+
+  if (versionStorageBackends.includes(backend as VersionStorageBackend)) {
+    return backend as VersionStorageBackend;
+  }
+
+  throw new Error(
+    `Invalid version storage backend "${backend}". Expected one of: ${versionStorageBackends.join(
+      ', ',
+    )}`,
+  );
 };
 
 export const getCommitMessage = (
