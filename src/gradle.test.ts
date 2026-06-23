@@ -2,6 +2,7 @@ import Fs from 'fs/promises';
 import { mock } from 'jest-mock-extended';
 import {
   doesVersionPropertiesExist,
+  getVersionStoragePath,
   getVersionProperties,
   setVersionProperties,
 } from './gradle';
@@ -21,6 +22,18 @@ const toolkitWithLog = {
 describe('Gradle', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+  });
+
+  describe('getVersionStoragePath', () => {
+    it('should return root storage path by default', () => {
+      expect(getVersionStoragePath()).toEqual('version.properties');
+    });
+
+    it('should scope storage path under app path', () => {
+      expect(getVersionStoragePath('gradle-properties', 'apps/mobile')).toEqual(
+        'apps/mobile/gradle.properties',
+      );
+    });
   });
 
   describe('doesVersionPropertiesExist', () => {
@@ -51,6 +64,17 @@ describe('Gradle', () => {
         doesVersionPropertiesExist(fs, 'gradle-properties'),
       ).resolves.toBeTruthy();
       expect(fs.readFile).toHaveBeenCalledWith('gradle.properties');
+    });
+
+    it('should read storage under app path when configured', async () => {
+      fs.readFile.mockImplementation(async () => 'majorVersion=1');
+
+      await expect(
+        doesVersionPropertiesExist(fs, 'version-properties', 'apps/mobile'),
+      ).resolves.toBeTruthy();
+      expect(fs.readFile).toHaveBeenCalledWith(
+        'apps/mobile/version.properties',
+      );
     });
   });
 
@@ -91,6 +115,28 @@ describe('Gradle', () => {
         patch: 6,
       });
       expect(toolkit.readFile).toHaveBeenCalledWith('gradle.properties');
+    });
+
+    it('should return parsed version from app path', async () => {
+      toolkit.readFile.mockImplementation(async () => {
+        return Buffer.from(`
+          majorVersion=7
+          minorVersion=8
+          patchVersion=9
+          buildNumber=
+        `);
+      });
+
+      await expect(
+        getVersionProperties(toolkit, 'version-properties', 'apps/mobile'),
+      ).resolves.toEqual({
+        major: 7,
+        minor: 8,
+        patch: 9,
+      });
+      expect(toolkit.readFile).toHaveBeenCalledWith(
+        'apps/mobile/version.properties',
+      );
     });
 
     it('should return 0.0.0 on error', async () => {
@@ -189,6 +235,30 @@ describe('Gradle', () => {
           'minorVersion=0',
           'patchVersion=0',
           'buildNumber=42',
+        ].join('\n'),
+      );
+    });
+
+    it('should write version properties under app path', async () => {
+      await setVersionProperties(
+        fs,
+        toolkitWithLog,
+        {
+          major: 3,
+          minor: 2,
+          patch: 1,
+        },
+        'version-properties',
+        'apps/mobile',
+      );
+
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        'apps/mobile/version.properties',
+        [
+          'majorVersion=3',
+          'minorVersion=2',
+          'patchVersion=1',
+          'buildNumber=',
         ].join('\n'),
       );
     });

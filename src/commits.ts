@@ -10,11 +10,27 @@ import { Commit } from './version';
 
 const commitSeparator = '\0';
 
+type GitVersionBumpContext = {
+  commits: Commit[];
+  changedPaths: string[];
+};
+
 const parseGitLog = (output: string): string[] => {
   return output
     .split(commitSeparator)
     .map((message) => message.trim())
     .filter((message) => message.length > 0);
+};
+
+const parseChangedPaths = (output: string): string[] => {
+  return Array.from(
+    new Set(
+      output
+        .split('\n')
+        .map((changedPath) => changedPath.trim())
+        .filter((changedPath) => changedPath.length > 0),
+    ),
+  );
 };
 
 const getPayloadCommits = (toolkit: Toolkit): Commit[] => {
@@ -61,10 +77,10 @@ const resolveGitRange = async (
   return `${previousTag}..HEAD`;
 };
 
-const getGitCommits = async (
+const getGitVersionBumpContext = async (
   toolkit: Toolkit,
   commitRange: Exclude<CommitRange, 'payload'>,
-): Promise<string[]> => {
+): Promise<GitVersionBumpContext> => {
   let range: string | undefined;
 
   try {
@@ -81,46 +97,84 @@ const getGitCommits = async (
     }
   }
 
-  const args = ['log', '--format=%B%x00'];
+  const commitArgs = ['log', '--format=%B%x00'];
+  const pathArgs = ['log', '--name-only', '--format='];
 
   if (range) {
-    args.push(range);
+    commitArgs.push(range);
+    pathArgs.push(range);
   }
 
-  return parseGitLog(await runCommandOutput('git', args));
+  const [commits, changedPaths] = await Promise.all([
+    runCommandOutput('git', commitArgs),
+    runCommandOutput('git', pathArgs),
+  ]);
+
+  return {
+    commits: parseGitLog(commits),
+    changedPaths: parseChangedPaths(changedPaths),
+  };
 };
 
-export const getCommitsForVersionBump = async (
+export const getVersionBumpContext = async (
   toolkit: Toolkit,
-): Promise<Commit[]> => {
+  allowPayloadFallback = true,
+): Promise<GitVersionBumpContext> => {
   const commitRange = getCommitRange(toolkit);
 
   if (commitRange === 'payload') {
     toolkit.log.log('Reading version bump commits from GitHub event payload');
 
-    return getPayloadCommits(toolkit);
+    return {
+      commits: getPayloadCommits(toolkit),
+      changedPaths: [],
+    };
   }
 
   try {
-    const commits = await getGitCommits(toolkit, commitRange);
+    const context = await getGitVersionBumpContext(toolkit, commitRange);
 
-    if (commits.length > 0) {
+    if (context.commits.length > 0) {
       toolkit.log.log(
         `Reading version bump commits from git ${commitRange} range`,
       );
 
-      return commits;
+      return context;
     }
 
-    toolkit.log.warn(
-      `Git ${commitRange} range did not contain commits; falling back to GitHub event payload`,
-    );
+    if (allowPayloadFallback) {
+      toolkit.log.warn(
+        `Git ${commitRange} range did not contain commits; falling back to GitHub event payload`,
+      );
+    }
   } catch (error) {
+    if (!allowPayloadFallback) {
+      throw error;
+    }
+
     toolkit.log.warn(
       `Could not read git ${commitRange} range; falling back to GitHub event payload`,
     );
     toolkit.log.warn(error);
   }
 
-  return getPayloadCommits(toolkit);
+  if (allowPayloadFallback) {
+    return {
+      commits: getPayloadCommits(toolkit),
+      changedPaths: [],
+    };
+  }
+
+  return {
+    commits: [],
+    changedPaths: [],
+  };
+};
+
+export const getCommitsForVersionBump = async (
+  toolkit: Toolkit,
+): Promise<Commit[]> => {
+  const { commits } = await getVersionBumpContext(toolkit);
+
+  return commits;
 };

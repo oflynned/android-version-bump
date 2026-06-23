@@ -10,14 +10,22 @@ const realGit = execFileSync('command', ['-v', 'git'], {
 }).trim();
 
 type EventCommit = string | { id: string; message: string };
+type FixtureCommit =
+  | string
+  | {
+      message: string;
+      filePath: string;
+    };
 type VersionStorage = 'version-properties' | 'gradle-properties';
 
 type FixtureOptions = {
   version?: string;
+  appVersions?: Record<string, string>;
   versionStorage?: VersionStorage;
   previousTag?: string;
-  preTagCommits?: string[];
-  commits?: string[];
+  previousTags?: string[];
+  preTagCommits?: FixtureCommit[];
+  commits?: FixtureCommit[];
   eventCommits?: EventCommit[];
   inputs?: Record<string, string>;
   environment?: Record<string, string>;
@@ -43,6 +51,7 @@ const writeVersion = (
   workspace: string,
   version: string,
   storage: VersionStorage = 'version-properties',
+  appPath = '',
 ): void => {
   const [major, minor, patch] = version.split('.');
   const fileName =
@@ -57,8 +66,28 @@ const writeVersion = (
     'buildNumber=',
   ].join('\n');
 
-  fs.writeFileSync(path.join(workspace, fileName), contents);
+  const versionPath = path.join(workspace, appPath, fileName);
+  fs.mkdirSync(path.dirname(versionPath), { recursive: true });
+  fs.writeFileSync(versionPath, contents);
 };
+
+const commitChange = (
+  workspace: string,
+  commit: FixtureCommit,
+  index: string,
+): void => {
+  const message = typeof commit === 'string' ? commit : commit.message;
+  const filePath = typeof commit === 'string' ? 'README.md' : commit.filePath;
+  const absolutePath = path.join(workspace, filePath);
+
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  fs.appendFileSync(absolutePath, `${index}:${message}\n`);
+  git(workspace, ['add', filePath]);
+  git(workspace, ['commit', '-m', message]);
+};
+
+const getCommitMessage = (commit: FixtureCommit): string =>
+  typeof commit === 'string' ? commit : commit.message;
 
 const createGitShim = (root: string, remote: string): string => {
   const shimDirectory = path.join(root, 'bin');
@@ -108,26 +137,30 @@ export const runActionFixture = (
   if (options.version) {
     writeVersion(workspace, options.version, options.versionStorage);
   }
+  for (const [appPath, version] of Object.entries(options.appVersions ?? {})) {
+    writeVersion(workspace, version, options.versionStorage, appPath);
+  }
   git(workspace, ['add', '.']);
   git(workspace, ['commit', '-m', 'chore: initial fixture']);
 
   for (const [index, message] of (options.preTagCommits ?? []).entries()) {
-    fs.appendFileSync(
-      path.join(workspace, 'README.md'),
-      `pre-tag-${index}:${message}\n`,
-    );
-    git(workspace, ['add', 'README.md']);
-    git(workspace, ['commit', '-m', message]);
+    commitChange(workspace, message, `pre-tag-${index}`);
   }
 
-  if (options.previousTag) {
-    git(workspace, ['tag', options.previousTag]);
+  for (const tag of [
+    ...(options.previousTag ? [options.previousTag] : []),
+    ...(options.previousTags ?? []),
+  ]) {
+    git(workspace, ['tag', tag]);
   }
 
   git(workspace, ['remote', 'add', 'origin', remote]);
   git(workspace, ['push', '-u', 'origin', 'main']);
-  if (options.previousTag) {
-    git(workspace, ['push', 'origin', options.previousTag]);
+  for (const tag of [
+    ...(options.previousTag ? [options.previousTag] : []),
+    ...(options.previousTags ?? []),
+  ]) {
+    git(workspace, ['push', 'origin', tag]);
   }
 
   if (branch !== 'main') {
@@ -135,12 +168,7 @@ export const runActionFixture = (
   }
 
   for (const [index, message] of (options.commits ?? []).entries()) {
-    fs.appendFileSync(
-      path.join(workspace, 'README.md'),
-      `${index}:${message}\n`,
-    );
-    git(workspace, ['add', 'README.md']);
-    git(workspace, ['commit', '-m', message]);
+    commitChange(workspace, message, index.toString());
   }
 
   if (branch !== 'main' || (options.commits?.length ?? 0) > 0) {
@@ -158,7 +186,8 @@ export const runActionFixture = (
   fs.writeFileSync(
     eventFile,
     JSON.stringify({
-      commits: options.eventCommits ?? options.commits ?? [],
+      commits:
+        options.eventCommits ?? (options.commits ?? []).map(getCommitMessage),
     }),
   );
   fs.writeFileSync(outputFile, '');

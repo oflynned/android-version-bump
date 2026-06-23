@@ -9,10 +9,13 @@ type Payload = {
 };
 
 const inputNames = [
+  'app_path',
   'commit_range',
   'commit_base_ref',
   'commit_tag_pattern',
   'gradle_location',
+  'git_tag_prefix',
+  'path_filter',
   'version_storage',
   'tag_prefix',
   'skip_ci',
