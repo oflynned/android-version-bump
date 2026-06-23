@@ -10,7 +10,7 @@ branding:
 inputs:
   tag_prefix:
     required: false
-    description: 'Prefix to add to git tag'
+    description: 'Prefix to add to the generated release commit message'
   skip_ci:
     required: false
     description: 'Affix [skip-ci] so that a cyclical ci loop does not happen'
@@ -23,7 +23,9 @@ inputs:
     description: 'Build number to generated from ci to show as part of the version'
 outputs:
   new_tag:
-    description: 'The newly created tag'
+    description: 'Compatibility alias for git_tag'
+  git_tag:
+    description: 'The newly created git tag'
   version_name:
     description: 'The generated Android version name'
   version_code:

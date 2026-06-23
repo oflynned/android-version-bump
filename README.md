@@ -37,6 +37,8 @@ For Kotlin DSL builds, pass the generated outputs into Gradle as project propert
     -PversionCode=${{ steps.bump_version.outputs.version_code }}
 ```
 
+Use `version_name` for Android's user-facing version, `version_code` for Android's monotonic integer version code, and `git_tag` for release or deployment steps that need the git tag.
+
 Pin to a version tag instead of `master` if you want fully repeatable workflow runs.
 
 #### Private repos
@@ -67,6 +69,7 @@ buildNumber=
 ```
 
 The build number can remain unset if you are using the default version name generators below.
+The generated `version_code` output uses the deterministic default formula `major * 10000 + minor * 100 + patch`.
 
 #### build.gradle.kts / Kotlin DSL
 
@@ -241,20 +244,21 @@ Enable this field by passing a build number/string/SHA as an input to the action
 
 Pass these in the `with:` block
 
-| Tag            | Effect                                                                                                                                                                         | Example                                                                     | Default value            |
-|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|--------------------------|
-| tag_prefix     | Prefix used in the generated release commit message. The git tag and `new_tag` output remain the unprefixed version.                                                           | `tag_prefix: 'release-'` makes the default commit message `release: release-1.0.0` | `v`                      |
-| skip_ci        | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                            | true                     |
-| build_number   | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                | ''                       |
-| commit_message | Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message. | `ci: {{ version }} was just released into the wild! :tada: :partying_face:` | `release: {{ version }}` |
+| Tag            | Effect                                                                                                                                                                         | Example                                                                            | Default value            |
+|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|--------------------------|
+| tag_prefix     | Prefix used in the generated release commit message. The git tag, `git_tag`, and `new_tag` outputs remain the unprefixed version.                                              | `tag_prefix: 'release-'` makes the default commit message `release: release-1.0.0` | `v`                      |
+| skip_ci        | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                                   | true                     |
+| build_number   | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                       | ''                       |
+| commit_message | Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message. | `ci: {{ version }} was just released into the wild! :tada: :partying_face:`        | `release: {{ version }}` |
 
 ## Outputs
 
 | Name         | Description                        | Example   |
 |--------------|------------------------------------|-----------|
-| new_tag      | The newly created unprefixed tag   | `1.0.0`   |
+| git_tag      | The newly created git tag          | `1.0.0`   |
 | version_name | The generated Android version name | `1.0.0.5` |
 | version_code | The generated Android version code | `10000`   |
+| new_tag      | Compatibility alias for `git_tag`  | `1.0.0`   |
 
 ## Q&A
 
@@ -269,10 +273,11 @@ The action also outputs a tag that you can use in later stages of the workflow l
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   with:
-    tag_name: ${{ steps.bump_version.outputs.new_tag }}
-    release_name: ${{ steps.bump_version.outputs.new_tag }}
+    tag_name: ${{ steps.bump_version.outputs.git_tag }}
+    release_name: ${{ steps.bump_version.outputs.git_tag }}
     draft: false
     prerelease: false
 ```
 
 Make sure you also assign the bump version step its own id (in this case it was already set to `id: bump_version`)
+Older workflows can keep using `new_tag`; it is preserved as a compatibility alias for `git_tag`.
