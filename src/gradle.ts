@@ -42,6 +42,5 @@ export const setVersionProperties = async (
   ].join('\n');
 
   await fs.writeFile('version.properties', contents);
-
-  await toolkit.exec('cat', ['version.properties']);
+  toolkit.log.log(contents);
 };
