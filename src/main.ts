@@ -70,13 +70,7 @@ const main = async () => {
       await setGitIdentity(tools);
       await createCommit(tools, message);
       await pushChanges(tools, build.name, true);
-
-      // fixes deprecation warning of ::set-output
-      // https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
-      await runCommand('sh', [
-        '-c',
-        `echo "new_tag=${build.name}" >> $GITHUB_OUTPUT`,
-      ]);
+      tools.setOutput('new_tag', build.name);
 
       tools.exit.success(
         `Version bumped version to ${build.name} successfully!`,

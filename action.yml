@@ -2,8 +2,8 @@ name: 'Android Version Bump'
 author: 'oflynned'
 description: 'GitHub action for bumping Gradle versions using semantic commits'
 runs:
-  using: docker
-  image: Dockerfile
+  using: node24
+  main: dist/index.js
 branding:
   icon: chevron-up
   color: blue
@@ -22,5 +22,5 @@ inputs:
     required: false
     description: 'Build number to generated from ci to show as part of the version'
 outputs:
-  newTag:
+  new_tag:
     description: 'The newly created tag'

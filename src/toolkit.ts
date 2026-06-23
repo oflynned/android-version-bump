@@ -51,4 +51,8 @@ export class Toolkit {
   async readFile(path: string): Promise<Buffer> {
     return fs.readFile(path);
   }
+
+  setOutput(name: string, value: string): void {
+    core.setOutput(name, value);
+  }
 }

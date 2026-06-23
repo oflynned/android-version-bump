@@ -1,19 +1,6 @@
-<h1 align="center">
-Android Version Bump
-</h1>
+Sick of depending on Fastlane or bumping versions manually?
 
-<p align="center">
-  <a href="https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml">
-    <img alt="GitHub Actions status" src="https://github.com/oflynned/Android-Semantic-Release/actions/workflows/master.yml/badge.svg">
-  </a>
-  <a href="https://codecov.io/gh/oflynned/Android-Semantic-Release">
-    <img src="https://codecov.io/gh/oflynned/Android-Semantic-Release/branch/master/graph/badge.svg?token=VTW7E1X43G" alt="Codecov">
-  </a>
-</p>
-
-Sick of depending on fastlane or bumping versions manually?
-
-This action uses semantic commits to automate version bumping in native Android repos and creates a release on every successful merge to master.
+This action uses semantic commits to automate version bumping in native Android repos and creates a version commit and git tag.
 By using this action, your CI runner can examine the commits in the event and bump the semantic version accordingly as long as you are using conventional commits.
 If you are not using conventional commits, it will just bump the patch version consistently.
 
@@ -25,14 +12,17 @@ Keep in mind that the max patch version is 99 on Android if you use the default 
 
 #### Dependencies
 
-It's recommended to use `actions/checkout@v2` or greater when checking out the repo.
+Use `actions/checkout@v6` or greater before running the action.
+The action runs as a bundled Node 24 JavaScript action, so workflow consumers do not need Docker, `npm install`, or `node_modules`.
 
-#### .github/workflows/master.yml
+#### .github/workflows/release.yml
 
 Add the following to your yaml workflow declaration.
 Make sure to bump **before** building any artifacts so that the correct versions are applied.
 
 ```yaml
+- uses: actions/checkout@v6
+
 - name: Bump version
   id: bump_version
   uses: oflynned/android-version-bump@master
@@ -40,11 +30,13 @@ Make sure to bump **before** building any artifacts so that the correct versions
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+Pin to a version tag instead of `master` if you want fully repeatable workflow runs.
+
 #### Private repos
 
-To use this action with `${{ secrets.GITHUB_TOKEN }}` in a private repo, you must set the contents: write permission for the token to write to the package.json file specified in the workflow.
+To use this action with `${{ secrets.GITHUB_TOKEN }}` in a private repo, set `contents: write` so the token can push the version commit and tag.
 
-```
+```yaml
 jobs:
   publish:
     ...
@@ -155,7 +147,7 @@ This field is optional.
 
 Providing the build number will automatically affix this to the version name
 
-Enable this field by passing a build number/string/SHA as an env var to the action:
+Enable this field by passing a build number/string/SHA as an input to the action:
 
 ```yaml
 - name: Bump version
@@ -172,11 +164,17 @@ Enable this field by passing a build number/string/SHA as an env var to the acti
 Pass these in the `with:` block
 
 | Tag            | Effect                                                                                                                                                                         | Example                                                                     | Default value            |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- | ------------------------ |
-| tag_prefix     | Allows you to set a prefix for a tag                                                                                                                                           | `tag_prefix: 'v'` sets the tag to `v1.0.0`                                  | ''                       |
-| skip_ci        | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: true`                                                             | false                    |
+|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|--------------------------|
+| tag_prefix     | Allows you to set a prefix for a tag                                                                                                                                           | `tag_prefix: 'release-'` sets the tag to `release-1.0.0`                    | `v`                      |
+| skip_ci        | Affixes `[skip-ci]` to the end of the commit message, even if you provide a custom message                                                                                     | `skip_ci: false`                                                            | true                     |
 | build_number   | Sets the build run number in the version                                                                                                                                       | `build_number: ${{ github.run_number }}` generates `1.0.0.5`                | ''                       |
 | commit_message | Sets the commit message when a release bump is performed. Can optionally use `{{ version }}` to insert the generated version bump with the tag prefix into the commit message. | `ci: {{ version }} was just released into the wild! :tada: :partying_face:` | `release: {{ version }}` |
+
+## Outputs
+
+| Name    | Description           | Example  |
+|---------|-----------------------|----------|
+| new_tag | The newly created tag | `v1.0.0` |
 
 ## Q&A
 
