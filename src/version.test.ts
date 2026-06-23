@@ -180,7 +180,7 @@ describe('version', () => {
       });
     });
 
-    it('should read commit messages from GitHub push payload objects', () => {
+    it('should read commit messages from commit objects', () => {
       const commits = [
         { message: 'fix: did something' },
         { message: 'feat: added user login' },
@@ -198,7 +198,7 @@ describe('version', () => {
       });
     });
 
-    it('should ignore malformed commit payload entries', () => {
+    it('should ignore malformed commit object entries', () => {
       const commits = [{ message: undefined }, { message: 42 }];
       const build = bumpBuild(commits, currentVersion);
 

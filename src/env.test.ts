@@ -3,6 +3,7 @@ import {
   getAppPath,
   getCommitBaseRef,
   getCommitMessage,
+  getCommitMessageVersionPrefix,
   getCommitRange,
   getCommitTagPattern,
   getGitTagPrefix,
@@ -123,6 +124,24 @@ describe('Env', () => {
     });
   });
 
+  describe('getCommitMessageVersionPrefix', () => {
+    it('should default to v', () => {
+      toolkit.inputs['commit_message_version_prefix'] = undefined;
+
+      const result = getCommitMessageVersionPrefix(toolkit);
+
+      expect(result).toEqual('v');
+    });
+
+    it('should return configured commit message version prefix', () => {
+      toolkit.inputs['commit_message_version_prefix'] = 'release-';
+
+      const result = getCommitMessageVersionPrefix(toolkit);
+
+      expect(result).toEqual('release-');
+    });
+  });
+
   describe('getGitTagPrefix', () => {
     it('should default to empty string', () => {
       toolkit.inputs['git_tag_prefix'] = undefined;
@@ -218,7 +237,7 @@ describe('Env', () => {
       expect(result).toEqual('release: new version v1.2.3');
     });
 
-    it('should allow empty tag prefix', () => {
+    it('should allow empty commit message version prefix', () => {
       toolkit.inputs['commit_message'] = undefined;
 
       const result = getCommitMessage(toolkit, build, '', false);
