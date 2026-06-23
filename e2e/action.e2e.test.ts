@@ -42,9 +42,8 @@ describe('packaged action with local git repositories', () => {
     expect(gitInRemote(fixture, 'log', '-1', '--format=%s', 'main')).toBe(
       'release: v0.0.1 [skip-ci]',
     );
-    expect(readOutput(fixture)).toBe('new_tag=0.0.1');
+    expect(readOutput(fixture)).toBe('git_tag=0.0.1');
     expect(readOutputs(fixture)).toEqual({
-      new_tag: '0.0.1',
       git_tag: '0.0.1',
       version_name: '0.0.1',
       version_code: '1',
@@ -138,7 +137,7 @@ describe('packaged action with local git repositories', () => {
       inputs: {
         commit_range: 'base-ref',
         commit_base_ref: 'origin/main',
-        tag_prefix: 'release-',
+        commit_message_version_prefix: 'release-',
         skip_ci: 'false',
         build_number: '42',
         commit_message: 'publish {{version}}',
@@ -159,9 +158,8 @@ describe('packaged action with local git repositories', () => {
     expect(
       gitInRemote(fixture, 'show', `${fixture.branch}:version.properties`),
     ).toContain('buildNumber=42');
-    expect(readOutput(fixture)).toBe('new_tag=1.3.0.42');
+    expect(readOutput(fixture)).toBe('git_tag=1.3.0.42');
     expect(readOutputs(fixture)).toEqual({
-      new_tag: '1.3.0.42',
       git_tag: '1.3.0.42',
       version_name: '1.3.0.42',
       version_code: '10300',
@@ -172,14 +170,10 @@ describe('packaged action with local git repositories', () => {
     );
   });
 
-  it('uses squash-style git history instead of payload commit details', () => {
+  it('uses squash-style git history', () => {
     const fixture = run({
       version: '1.2.3',
       commits: ['feat: squash login branch (#42)'],
-      eventCommits: [
-        { id: 'fixture-1', message: 'fix: payload detail one' },
-        { id: 'fixture-2', message: 'fix: payload detail two' },
-      ],
     });
 
     expect(fixture.result.status).toBe(0);
@@ -255,7 +249,6 @@ describe('packaged action with local git repositories', () => {
       gitInRemote(fixture, 'rev-parse', 'refs/heads/main'),
     );
     expect(readOutputs(fixture)).toMatchObject({
-      new_tag: 'mobile-v1.2.4',
       git_tag: 'mobile-v1.2.4',
       version_name: '1.2.4',
       release_action: 'released',
@@ -307,7 +300,6 @@ describe('packaged action with local git repositories', () => {
       gitInRemote(fixture, 'rev-parse', 'refs/heads/main'),
     );
     expect(readOutputs(fixture)).toMatchObject({
-      new_tag: 'admin-v9.9.0',
       git_tag: 'admin-v9.9.0',
       version_name: '9.9.0',
       release_action: 'released',
@@ -350,14 +342,13 @@ describe('packaged action with local git repositories', () => {
     );
     expect(gitInRemote(fixture, 'tag', '--list', 'mobile-v1.2.4')).toBe('');
     expect(readOutputs(fixture)).toMatchObject({
-      new_tag: 'mobile-v1.2.3',
       git_tag: 'mobile-v1.2.3',
       version_name: '1.2.3',
       release_action: 'skipped',
     });
   });
 
-  it('rejects payload commit range when path filtering is enabled', () => {
+  it('rejects payload commit range', () => {
     const fixture = run({
       appVersions: {
         'apps/mobile': '1.2.3',
@@ -371,13 +362,12 @@ describe('packaged action with local git repositories', () => {
       inputs: {
         app_path: 'apps/mobile',
         commit_range: 'payload',
-        path_filter: 'true',
       },
     });
 
     expect(fixture.result.status).toBe(1);
     expect(`${fixture.result.stdout}${fixture.result.stderr}`).toContain(
-      'path_filter cannot be used with commit_range payload',
+      'Invalid commit range "payload"',
     );
     expect(gitInRemote(fixture, 'tag', '--list', '1.2.4')).toBe('');
   });
@@ -448,29 +438,12 @@ describe('packaged action with local git repositories', () => {
     );
   });
 
-  it('can use commit messages from real GitHub push payload objects (#122)', () => {
-    const fixture = run({
-      version: '1.2.3',
-      commits: ['fix: repair launch'],
-      inputs: {
-        commit_range: 'payload',
-      },
-      eventCommits: [{ id: 'fixture', message: 'feat: add login' }],
-    });
-
-    expect(fixture.result.status).toBe(0);
-    expect(gitInRemote(fixture, 'show', 'main:version.properties')).toContain(
-      'minorVersion=3',
-    );
-  });
-
   it('declares the output written by the packaged action', () => {
     const action = fs.readFileSync(
       path.resolve(__dirname, '../action.yml'),
       'utf8',
     );
 
-    expect(action).toContain('  new_tag:');
     expect(action).toContain('  git_tag:');
     expect(action).toContain('  version_name:');
     expect(action).toContain('  version_code:');

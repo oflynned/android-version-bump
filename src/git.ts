@@ -26,7 +26,7 @@ export const createCommit = async (
     await runCommand('git', ['commit', '-m', commit]);
   } catch {
     toolkit.log.warn(
-      `Commit failed, but this shouldn't be a problem if you are using actions/checkout@v2`,
+      `Commit failed. Check that the workflow uses actions/checkout with write permissions and a clean working tree.`,
     );
   }
 };

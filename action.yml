@@ -13,7 +13,7 @@ inputs:
     description: 'App or module path used to scope version storage and optional path filtering'
   commit_range:
     required: false
-    description: 'Commit range source for version bumping: previous-tag, base-ref, or payload'
+    description: 'Commit range source for version bumping: previous-tag or base-ref'
     default: 'previous-tag'
   commit_base_ref:
     required: false
@@ -28,14 +28,14 @@ inputs:
     default: 'version-properties'
   git_tag_prefix:
     required: false
-    description: 'Prefix to add to the created git tag and git_tag/new_tag outputs'
+    description: 'Prefix to add to the created git tag and git_tag output'
   path_filter:
     required: false
     description: 'Only bump when git commits in the selected range touch app_path'
     default: 'false'
-  tag_prefix:
+  commit_message_version_prefix:
     required: false
-    description: 'Prefix to add to the generated release commit message'
+    description: 'Prefix to add to the generated version token in release commit messages'
   skip_ci:
     required: false
     description: 'Affix [skip-ci] so that a cyclical ci loop does not happen'
@@ -47,8 +47,6 @@ inputs:
     required: false
     description: 'Build number to generated from ci to show as part of the version'
 outputs:
-  new_tag:
-    description: 'Compatibility alias for git_tag'
   git_tag:
     description: 'The newly created git tag'
   version_name:
