@@ -8,9 +8,34 @@ branding:
   icon: chevron-up
   color: blue
 inputs:
+  app_path:
+    required: false
+    description: 'App or module path used to scope version storage and optional path filtering'
+  commit_range:
+    required: false
+    description: 'Commit range source for version bumping: previous-tag, base-ref, or payload'
+    default: 'previous-tag'
+  commit_base_ref:
+    required: false
+    description: 'Base ref used when commit_range is base-ref, such as origin/main'
+  commit_tag_pattern:
+    required: false
+    description: 'Git tag pattern used when commit_range is previous-tag'
+    default: '*'
+  version_storage:
+    required: false
+    description: 'Version metadata storage backend: version-properties or gradle-properties'
+    default: 'version-properties'
+  git_tag_prefix:
+    required: false
+    description: 'Prefix to add to the created git tag and git_tag/new_tag outputs'
+  path_filter:
+    required: false
+    description: 'Only bump when git commits in the selected range touch app_path'
+    default: 'false'
   tag_prefix:
     required: false
-    description: 'Prefix to add to git tag'
+    description: 'Prefix to add to the generated release commit message'
   skip_ci:
     required: false
     description: 'Affix [skip-ci] so that a cyclical ci loop does not happen'
@@ -23,4 +48,12 @@ inputs:
     description: 'Build number to generated from ci to show as part of the version'
 outputs:
   new_tag:
-    description: 'The newly created tag'
+    description: 'Compatibility alias for git_tag'
+  git_tag:
+    description: 'The newly created git tag'
+  version_name:
+    description: 'The generated Android version name'
+  version_code:
+    description: 'The generated Android version code'
+  release_action:
+    description: 'The release action performed: released or skipped'

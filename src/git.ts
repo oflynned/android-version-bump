@@ -16,12 +16,13 @@ export const setGitIdentity = async (toolkit: Toolkit): Promise<void> => {
 export const createCommit = async (
   toolkit: Toolkit,
   commit: string,
+  paths = ['version.properties'],
 ): Promise<void> => {
   try {
     toolkit.log.log(`Creating version commit`);
     toolkit.log.log({ commit });
 
-    await runCommand('git', ['add', 'version.properties']);
+    await runCommand('git', ['add', ...paths]);
     await runCommand('git', ['commit', '-m', commit]);
   } catch {
     toolkit.log.warn(
