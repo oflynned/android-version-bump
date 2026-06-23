@@ -51,7 +51,7 @@ If no matching previous tag exists, the action reads all reachable commits.
 If the git range cannot be read, the action falls back to the GitHub event payload for compatibility.
 
 | Range        | Behavior                                                                      |
-| ------------ | ----------------------------------------------------------------------------- |
+|--------------|-------------------------------------------------------------------------------|
 | previous-tag | Reads commits from the previous tag matching `commit_tag_pattern` to `HEAD`.  |
 | base-ref     | Reads commits from `commit_base_ref` to `HEAD`.                               |
 | payload      | Reads commit messages from the GitHub event payload, matching older behavior. |
@@ -118,7 +118,7 @@ buildNumber=
 ```
 
 | Backend            | File                 | Behavior                                                          |
-| ------------------ | -------------------- | ----------------------------------------------------------------- |
+|--------------------|----------------------|-------------------------------------------------------------------|
 | version-properties | `version.properties` | Compatibility default. The action writes the version keys file.   |
 | gradle-properties  | `gradle.properties`  | The action updates the version keys and preserves unrelated keys. |
 
@@ -308,7 +308,7 @@ Enable this field by passing a build number/string/SHA as an input to the action
 Pass these in the `with:` block
 
 | Tag                | Effect                                                                                                                                                                         | Example                                                                            | Default value            |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------ |
+|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|--------------------------|
 | commit_range       | Selects where version bump commit messages come from. Supported values are `previous-tag`, `base-ref`, and `payload`.                                                          | `commit_range: base-ref` reads from `commit_base_ref` to `HEAD`                    | `previous-tag`           |
 | commit_base_ref    | Base ref used when `commit_range` is `base-ref`. If omitted, pull request workflows use `origin/${{ github.base_ref }}` when available.                                        | `commit_base_ref: origin/main`                                                     | ''                       |
 | commit_tag_pattern | Tag glob used when `commit_range` is `previous-tag`.                                                                                                                           | `commit_tag_pattern: 'v*'`                                                         | `*`                      |
@@ -321,7 +321,7 @@ Pass these in the `with:` block
 ## Outputs
 
 | Name         | Description                        | Example   |
-| ------------ | ---------------------------------- | --------- |
+|--------------|------------------------------------|-----------|
 | git_tag      | The newly created git tag          | `1.0.0`   |
 | version_name | The generated Android version name | `1.0.0.5` |
 | version_code | The generated Android version code | `10000`   |
